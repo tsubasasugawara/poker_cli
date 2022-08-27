@@ -5,7 +5,7 @@ services:
     container_name: golang
     build:
       context: .
-      dockerfile: Go.Dockerfile
+      dockerfile: ./docker/go/Go.Dockerfile
     tty: true
     volumes:
       - ./src:/go/src

@@ -1,17 +1,18 @@
 package player
 
 import (
+	"poker/poker/playing_cards/card"
 	"poker/poker/dealer"
 )
 
 type Player struct {
-	Identification Number int
-	Hands [2]int
+	Id int
+	Hand [2]card.Card
 	Stack int
 }
 
 func NewPlayer(stack int) *Player {
-	player := Player{Hands: []int{0,0}, Stack: stack}
+	player := Player{Stack: stack}
 	return &player
 }
 

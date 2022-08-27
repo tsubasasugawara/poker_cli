@@ -67,10 +67,7 @@ func (dealer *Dealer) Shuffle() {
 
 	for i, _ := range dealer.Cards {
 		index := rand.Intn(card.SuitNum * card.CardsNum)
-
-		tmp := dealer.Cards[index]
-		dealer.Cards[index] = dealer.Cards[i]
-		dealer.Cards[i] = tmp
+		dealer.Cards[index],dealer.Cards[i]  = dealer.Cards[i],dealer.Cards[index]
 	}
 }
 

@@ -5,6 +5,9 @@ import (
 
 	"poker/poker/dealer"
 	"poker/poker/player"
+
+	"poker/poker/playing_cards/card"
+	"poker/poker/dealer/evaluator"
 )
 
 func Start() {
@@ -25,7 +28,7 @@ func Start() {
 	}
 	p2.Id = p2id
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 0; i++ {
 		d.Shuffle()
 		res,_ := d.Deal()
 
@@ -35,4 +38,7 @@ func Start() {
 		fmt.Printf("%d %d     %d %d \n", p1.Hand[0].Number, p1.Hand[0].Suit, p1.Hand[1].Number, p1.Hand[1].Suit)
 		fmt.Printf("%d %d     %d %d \n", p2.Hand[0].Number, p2.Hand[0].Suit, p2.Hand[1].Number, p2.Hand[1].Suit)
 	}
+
+	evaluator.Evaluator([]player.Player{*p1,*p2}, [5]card.Card{card.Card{Number: 1, Suit: 3},card.Card{Number: 13, Suit: 2}, card.Card{Number: 8, Suit: 3}, card.Card{Number: 3, Suit: 2},card.Card{Number: 9, Suit: 0}})
+
 }

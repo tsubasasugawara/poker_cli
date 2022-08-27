@@ -2,7 +2,9 @@ package evaluator
 
 type Point struct {
 	PlayerId int
+	Role int
 	Point int
+	HighCard int
 }
 
 type Points []Point
@@ -16,5 +18,12 @@ func (p Points) Swap(i, j int) {
 }
 
 func (p Points) Less(i, j int) bool {
-	return p[i].Point < p[j].Point
+	if p[i].Role == p[j].Role {
+		if p[i].Point == p[j].Point {
+			return p[i].HighCard < p[j].HighCard
+		}
+		return p[i].Point < p[j].Point
+	}
+
+	return p[i].Role < p[j].Role
 }

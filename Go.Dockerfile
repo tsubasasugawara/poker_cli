@@ -9,6 +9,6 @@ WORKDIR ${ROOT}
 COPY src .
 
 RUN apt update && apt upgrade -y &&\
-    apt install vim curl
+    apt install vim curl -y
 
 RUN echo "umask 000" >> ~/.profile

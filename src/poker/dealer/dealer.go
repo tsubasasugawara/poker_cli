@@ -36,6 +36,7 @@ func (dealer *Dealer) init() {
 	dealer.ActionHistory = []ActionHistory{}
 	dealer.BigBlindPosition = 0
 
+	dealer.Cards = []card.Card{}
 	// 順番に並んだトランプを生成
 	for i := 0; i < card.SuitNum; i++ {
 		for j := 1; j <= card.CardsNum; j++ {

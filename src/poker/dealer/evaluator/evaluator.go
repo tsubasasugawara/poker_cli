@@ -23,7 +23,7 @@ func Evaluator(players []player.Player, board[5]card.Card) {
 		}
 
 		if role == HIGH_CARD {
-			// フォーカード
+			point, role = fourCard(cards)
 		}
 
 		if role == HIGH_CARD {
@@ -57,6 +57,7 @@ func Evaluator(players []player.Player, board[5]card.Card) {
 				Point: point,
 				Role: role,
 				HighCard: cardsMax(p.Hand[0].Number, p.Hand[1].Number),
+				LowCard: cardsMin(p.Hand[0].Number, p.Hand[1].Number),
 			},
 		)
 	}
@@ -96,6 +97,21 @@ func cardsMax(a, b int) int {
 	}
 }
 
+func cardsMin(a, b int) int {
+	if a == 1 {
+		a = a + 13
+	}
+	if b == 1 {
+		b = b + 13
+	}
+
+	if a < b {
+		return a
+	} else {
+		return b
+	}
+}
+
 // ロイヤルストレートフラッシュ判定
 // 役ができていたら2番目の引数がtrueになり、
 // カードのナンバーの合計を返す
@@ -122,6 +138,32 @@ func royalStraightFlush(cards []card.Card) (int, int) {
 }
 
 // フォーカード判定
-// func fourCard(cards []card.Card) (int, int) {
-// 	for _, v := range cards
-// }
+ func fourCard(cards []card.Card) (int, int) {
+	 point := 0
+
+	 for i := 0; i < len(cards); i++ {
+		 cnt := 0
+		 tmp := 0
+		 for j := 0; j < len(cards); j++ {
+			 if j == i {
+				 continue
+			 }
+			if cards[i].Number == cards[j].Number {
+				cnt = cnt + 1
+				tmp = tmp + cards[i].Number
+				if cards[i].Number == 1 {
+					tmp = tmp + 13
+				}
+			}
+		 }
+		 log.Printf("%d %d", cnt, tmp)
+		 if cnt == 3 {
+			 point = tmp
+		 }
+	 }
+
+	 if point > 0 {
+		 return point, FOUR_CARD
+	 }
+	 return 0, HIGH_CARD
+ }

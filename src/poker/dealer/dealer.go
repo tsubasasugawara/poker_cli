@@ -64,7 +64,7 @@ func (dealer *Dealer) TakePlayer(playerId int) {
 func (dealer *Dealer) Shuffle() {
 	dealer.init()
 
-	rand.Seed(time.Now().Unix())
+	rand.Seed(time.Now().UnixNano())
 
 	for i, _ := range dealer.Cards {
 		index := rand.Intn(card.SuitNum * card.CardsNum)

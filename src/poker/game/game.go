@@ -37,9 +37,9 @@ func Start() {
 		[]player.Player{*p1,*p2},
 		[5]card.Card{
 			card.Card{Number: 1, Suit: 0},
-			card.Card{Number: 13, Suit: 0},
-			card.Card{Number: 12, Suit: 0},
-			card.Card{Number: 10, Suit: 0},
+			card.Card{Number: 1, Suit: 0},
+			card.Card{Number: 1, Suit: 0},
+			card.Card{Number: 1, Suit: 0},
 			card.Card{Number: 11, Suit: 0}},
 		)
 	}

@@ -5,6 +5,7 @@ type Point struct {
 	Role int
 	Point int
 	HighCard int
+	LowCard int
 }
 
 type Points []Point
@@ -20,6 +21,9 @@ func (p Points) Swap(i, j int) {
 func (p Points) Less(i, j int) bool {
 	if p[i].Role == p[j].Role {
 		if p[i].Point == p[j].Point {
+			if p[i].HighCard == p[i].HighCard {
+				return p[i].LowCard < p[i].LowCard
+			}
 			return p[i].HighCard < p[j].HighCard
 		}
 		return p[i].Point < p[j].Point

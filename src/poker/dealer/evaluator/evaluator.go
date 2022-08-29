@@ -1,29 +1,31 @@
 package evaluator
 
 import (
-	"sort"
-	"log"
+	// "log"
 
 	"poker/poker/playing_cards/card"
 	"poker/poker/player"
 )
+
+type CardMap [card.SuitNum + 1][card.CardsNum + 1]int
 
 // 役を評価し、勝者のプレイヤーIDを返す
 func Evaluator(players []player.Player, board[5]card.Card) {
 	var points Points
 
 	for _, p := range players {
-		cards := sortCards(p.Hand, board)
+		cards := join(p.Hand, board)
+		cardMap := MakeCardMap(cards)
 
-		var point int 	// 役の合計値
-		var role int // 役ができているかどうか
+		var role = HIGH_CARD 			// 役ができているかどうか0
+		var usedCards []card.Card 	// 役を形成するカード
 
 		if role == HIGH_CARD {
-			point, role = royalStraightFlush(cards)
+			role, usedCards = StraightFlush(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			point, role = fourCard(cards)
+			role, usedCards = FourCard(cardMap)
 		}
 
 		if role == HIGH_CARD {
@@ -54,19 +56,15 @@ func Evaluator(players []player.Player, board[5]card.Card) {
 			points,
 			Point{
 				PlayerId: p.Id,
-				Point: point,
 				Role: role,
-				HighCard: cardsMax(p.Hand[0].Number, p.Hand[1].Number),
-				LowCard: cardsMin(p.Hand[0].Number, p.Hand[1].Number),
+				UsedCards: usedCards,
 			},
 		)
 	}
-
-	log.Println(points)
 }
 
-func sortCards(hand [2]card.Card, board[5]card.Card) Cards {
-	var cards Cards
+func join(hand [2]card.Card, board[5]card.Card) []card.Card {
+	var cards []card.Card
 
 	for _, v := range hand {
 		cards = append(cards, v)
@@ -76,17 +74,15 @@ func sortCards(hand [2]card.Card, board[5]card.Card) Cards {
 		cards = append(cards, v)
 	}
 
-	sort.Sort(cards)
-
 	return cards
 }
 
 // カードの大小を比べ、大きい方を返す
 func cardsMax(a, b int) int {
-	if a == 1 {
+	if a == 0 {
 		a = a + 13
 	}
-	if b == 1 {
+	if b == 0 {
 		b = b + 13
 	}
 
@@ -98,10 +94,10 @@ func cardsMax(a, b int) int {
 }
 
 func cardsMin(a, b int) int {
-	if a == 1 {
+	if a == 0 {
 		a = a + 13
 	}
-	if b == 1 {
+	if b == 0 {
 		b = b + 13
 	}
 
@@ -112,58 +108,77 @@ func cardsMin(a, b int) int {
 	}
 }
 
-// ロイヤルストレートフラッシュ判定
-// 役ができていたら2番目の引数がtrueになり、
-// カードのナンバーの合計を返す
-func royalStraightFlush(cards []card.Card) (int, int) {
-	role := []card.Card{}
+// 行の最後は同じスートのカード枚数,
+// 列の最後は同じ数のカード枚数
+func MakeCardMap(cards []card.Card) CardMap {
+	cardMap := CardMap{}
+	for _, c := range cards {
+		cardMap[c.Suit][c.Number] = 1
+		cardMap[c.Suit][card.CardsNum] += 1
+		cardMap[card.SuitNum][c.Number] += 1
+	}
+	return cardMap
+}
 
-	for i := 10; i <= 14; i++ {
-		for _, ele := range cards {
-			if ((ele.Number % 13) == (i % 13)) {
-				if len(role) <= 0 {
-					role = append(role, ele)
-				} else if role[0].Suit == ele.Suit {
-					role = append(role, ele)
-				}
-				break
+// カードマップの中から最も大きい値を見つける
+func maxCard(cardMap CardMap) card.Card {
+	for i := card.CardsNum; i > 0; i-- {
+		for j := 0; j < card.SuitNum; j++ {
+			if cardMap[i % 13][j] == 1 {
+				return card.Card{Number: (i % 13), Suit: j}
 			}
 		}
 	}
-
-	if len(role) == 5 {
-		return (10 + 11 + 12 + 13 + 14), ROYAL_STRAIGHT_FLASH
-	}
-	return 0, HIGH_CARD
+	return card.Card{Number: -1, Suit: -1}
 }
 
-// フォーカード判定
- func fourCard(cards []card.Card) (int, int) {
-	 point := 0
+// 1番目の戻り値は、役
+// 2番目の戻り値は、役を形成するカード
+func StraightFlush(cardMap CardMap) (int, []card.Card) {
 
-	 for i := 0; i < len(cards); i++ {
-		 cnt := 0
-		 tmp := 0
-		 for j := 0; j < len(cards); j++ {
-			 if j == i {
-				 continue
-			 }
-			if cards[i].Number == cards[j].Number {
-				cnt = cnt + 1
-				tmp = tmp + cards[i].Number
-				if cards[i].Number == 1 {
-					tmp = tmp + 13
-				}
+	for i := 0; i < card.SuitNum; i++ {
+		cards := []card.Card{} // 役を形成するカードを格納
+
+		if cardMap[i][card.CardsNum] < 5 {
+			continue
+		}
+
+		for num := 13; num >= 0; num-- {
+			if cardMap[i][num % 13] == 1 {
+				cards = append(cards, card.Card{Number: (num % 13), Suit: i})
+			} else {
+				cards = []card.Card{}
 			}
-		 }
-		 log.Printf("%d %d", cnt, tmp)
-		 if cnt == 3 {
-			 point = tmp
-		 }
-	 }
 
-	 if point > 0 {
-		 return point, FOUR_CARD
-	 }
-	 return 0, HIGH_CARD
- }
+			if len(cards) == 5 {
+				break
+			}
+		}
+
+		if len(cards) == 5 {
+			return STRAIGHT_FLASH, cards
+		}
+	}
+
+	return HIGH_CARD, []card.Card{}
+}
+
+func FourCard(cardMap CardMap) (int, []card.Card) {
+	cards := []card.Card{}
+
+	for num := 13; num > 0; num-- {
+		if cardMap[card.SuitNum][num % 13] == 4 {
+			cardMap[card.SuitNum][num % 13] = 0
+
+			for i := 0; i < 4; i++ {
+				cards = append(cards, card.Card{Number: (num % 13), Suit: i})
+			}
+
+			cards = append(cards, maxCard(cardMap))
+
+			return FOUR_CARD, cards
+		}
+	}
+
+	return HIGH_CARD, cards
+}

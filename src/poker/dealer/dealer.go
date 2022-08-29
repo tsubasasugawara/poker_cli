@@ -39,7 +39,7 @@ func (dealer *Dealer) init() {
 	dealer.Cards = []card.Card{}
 	// 順番に並んだトランプを生成
 	for i := 0; i < card.SuitNum; i++ {
-		for j := 1; j <= card.CardsNum; j++ {
+		for j := 0; j < card.CardsNum; j++ {
 			dealer.Cards = append(dealer.Cards, card.Card{Number: j, Suit: i})
 		}
 	}

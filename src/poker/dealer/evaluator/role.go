@@ -1,7 +1,8 @@
 package evaluator
 
 const (
-	ROYAL_STRAIGHT_FLASH	int = 8
+	ROYAL_STRAIGHT_FLASH	int = 9
+	STRAIGHT_FLASH	int = 8
 	FOUR_CARD				int = 7
 	FULL_HOUSE				int = 6
 	FLASH					int = 5

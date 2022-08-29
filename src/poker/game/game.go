@@ -26,7 +26,7 @@ func Start() {
 	}
 	p2.Id = p2id
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1; i++ {
 		d.Shuffle()
 		res,_ := d.Deal()
 
@@ -37,10 +37,10 @@ func Start() {
 		[]player.Player{*p1,*p2},
 		[5]card.Card{
 			card.Card{Number: 1, Suit: 0},
-			card.Card{Number: 1, Suit: 0},
-			card.Card{Number: 1, Suit: 0},
-			card.Card{Number: 1, Suit: 0},
-			card.Card{Number: 11, Suit: 0}},
+			card.Card{Number: 1, Suit: 2},
+			card.Card{Number: 1, Suit: 1},
+			card.Card{Number: 1, Suit: 3},
+			card.Card{Number: 5, Suit: 0}},
 		)
 	}
 }

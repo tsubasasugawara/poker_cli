@@ -1,8 +1,6 @@
 package evaluator
 
 import (
-	// "log"
-
 	"poker/poker/playing_cards/card"
 	"poker/poker/player"
 )
@@ -15,41 +13,45 @@ func Evaluator(players []player.Player, board[5]card.Card) {
 
 	for _, p := range players {
 		cards := join(p.Hand, board)
-		cardMap := MakeCardMap(cards)
+		cardMap := makeCardMap(cards)
 
 		var role = HIGH_CARD 			// 役ができているかどうか0
-		var usedCards []card.Card 	// 役を形成するカード
+		var usedCards Cards 			// 役を形成するカード
 
 		if role == HIGH_CARD {
-			role, usedCards = StraightFlush(cardMap)
+			role, usedCards = straightFlush(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			role, usedCards = FourCard(cardMap)
+			role, usedCards = fourCard(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			// フルハウス
+			role, usedCards = fullHouse(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			// フラッシュ
+			role, usedCards = flash(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			// ストレート
+			role, usedCards = straight(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			// スリーカード
+			role, usedCards = threeCard(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			// ツーペア
+			role, usedCards = twoPair(cardMap)
 		}
 
 		if role == HIGH_CARD {
-			// ワンペア
+			role, usedCards = onePair(cardMap)
+		}
+
+		if role == HIGH_CARD {
+			role, usedCards = highCard(cardMap)
 		}
 
 		points = append(
@@ -63,8 +65,8 @@ func Evaluator(players []player.Player, board[5]card.Card) {
 	}
 }
 
-func join(hand [2]card.Card, board[5]card.Card) []card.Card {
-	var cards []card.Card
+func join(hand [2]card.Card, board[5]card.Card) Cards {
+	var cards Cards
 
 	for _, v := range hand {
 		cards = append(cards, v)
@@ -77,40 +79,9 @@ func join(hand [2]card.Card, board[5]card.Card) []card.Card {
 	return cards
 }
 
-// カードの大小を比べ、大きい方を返す
-func cardsMax(a, b int) int {
-	if a == 0 {
-		a = a + 13
-	}
-	if b == 0 {
-		b = b + 13
-	}
-
-	if a < b {
-		return b
-	} else {
-		return a
-	}
-}
-
-func cardsMin(a, b int) int {
-	if a == 0 {
-		a = a + 13
-	}
-	if b == 0 {
-		b = b + 13
-	}
-
-	if a < b {
-		return a
-	} else {
-		return b
-	}
-}
-
 // 行の最後は同じスートのカード枚数,
 // 列の最後は同じ数のカード枚数
-func MakeCardMap(cards []card.Card) CardMap {
+func makeCardMap(cards Cards) CardMap {
 	cardMap := CardMap{}
 	for _, c := range cards {
 		cardMap[c.Suit][c.Number] = 1
@@ -124,30 +95,39 @@ func MakeCardMap(cards []card.Card) CardMap {
 func maxCard(cardMap CardMap) card.Card {
 	for i := card.CardsNum; i > 0; i-- {
 		for j := 0; j < card.SuitNum; j++ {
-			if cardMap[i % 13][j] == 1 {
-				return card.Card{Number: (i % 13), Suit: j}
+			if cardMap[j][i % card.CardsNum] == 1{
+				return card.Card{Number: (i % card.CardsNum), Suit: j}
 			}
 		}
 	}
 	return card.Card{Number: -1, Suit: -1}
 }
 
+// 7枚の中のカードかどうか
+func isCard(cardMap CardMap, number, suit int) bool {
+	if cardMap[suit][number % card.CardsNum] > 0{
+		return true
+	} else {
+		return false
+	}
+}
+
 // 1番目の戻り値は、役
 // 2番目の戻り値は、役を形成するカード
-func StraightFlush(cardMap CardMap) (int, []card.Card) {
+func straightFlush(cardMap CardMap) (int, Cards) {
 
 	for i := 0; i < card.SuitNum; i++ {
-		cards := []card.Card{} // 役を形成するカードを格納
+		cards := Cards{} // 役を形成するカードを格納
 
 		if cardMap[i][card.CardsNum] < 5 {
 			continue
 		}
 
-		for num := 13; num >= 0; num-- {
-			if cardMap[i][num % 13] == 1 {
-				cards = append(cards, card.Card{Number: (num % 13), Suit: i})
+		for num := card.CardsNum; num >= 0; num-- {
+			if cardMap[i][num % card.CardsNum] == 1 {
+				cards = append(cards, card.Card{Number: (num % card.CardsNum), Suit: i})
 			} else {
-				cards = []card.Card{}
+				cards = Cards{}
 			}
 
 			if len(cards) == 5 {
@@ -160,25 +140,177 @@ func StraightFlush(cardMap CardMap) (int, []card.Card) {
 		}
 	}
 
-	return HIGH_CARD, []card.Card{}
+	return HIGH_CARD, Cards{}
 }
 
-func FourCard(cardMap CardMap) (int, []card.Card) {
-	cards := []card.Card{}
+func fourCard(cardMap CardMap) (int, Cards) {
+	cards := findRoleWithSameCard(cardMap, 4)
+	if len(cards) == 0 {
+		return HIGH_CARD, cards
+	} else {
+		return FOUR_CARD, cards
+	}
+}
 
-	for num := 13; num > 0; num-- {
-		if cardMap[card.SuitNum][num % 13] == 4 {
-			cardMap[card.SuitNum][num % 13] = 0
+func fullHouse(cardMap CardMap) (int, Cards) {
+	var tc, op Cards
+	role := HIGH_CARD
 
-			for i := 0; i < 4; i++ {
-				cards = append(cards, card.Card{Number: (num % 13), Suit: i})
+	role, tc = threeCard(cardMap)
+	if role != THREE_CARD {
+		return HIGH_CARD, Cards{}
+	}
+
+	role, op = onePair(cardMap)
+	if role != ONE_PAIR {
+		return HIGH_CARD, Cards{}
+	}
+
+	return FULL_HOUSE, append(tc[0:3], op[0:2]...)
+}
+
+func flash(cardMap CardMap) (int, Cards) {
+	var cards Cards
+
+	for i := 0; i < card.SuitNum; i++ {
+		if cardMap[i][card.CardsNum] < 5 {
+			continue
+		}
+
+		for num := card.CardsNum; num > 0; num-- {
+			if cardMap[i][num % card.CardsNum] != 1 {
+				continue
 			}
 
-			cards = append(cards, maxCard(cardMap))
+			cards = append(cards, card.Card{Number: num % card.CardsNum, Suit: i})
+		}
 
-			return FOUR_CARD, cards
+		return FLASH, cards
+	}
+
+	return HIGH_CARD, Cards{}
+}
+
+func straight(cardMap CardMap) (int, Cards) {
+	var cards Cards
+
+	cnt := 0
+	num := card.CardsNum
+	for ; num >= 0; num-- {
+		if cardMap[card.SuitNum][num % card.CardsNum] > 0 {
+			cnt += 1
+		} else {
+			cnt = 0
+		}
+
+		if cnt == 5 {
+			break
 		}
 	}
 
-	return HIGH_CARD, cards
+	if cnt != 5 {
+		return HIGH_CARD, Cards{}
+	}
+
+	for i := num; i < num + 5; i++ {
+		for s := 0; s < card.SuitNum; s++ {
+			if cardMap[s][i % card.CardsNum] == 1 {
+				cards = append(cards, card.Card{Number: i % card.CardsNum, Suit: s})
+				break
+			}
+		}
+	}
+
+	return STRAIGHT, cards
+}
+
+func threeCard(cardMap CardMap) (int, Cards) {
+	cards := findRoleWithSameCard(cardMap, 3)
+	if len(cards) == 0 {
+		return HIGH_CARD, cards
+	} else {
+		return THREE_CARD, cards
+	}
+}
+
+func twoPair(cardMap CardMap) (int, Cards) {
+	var cards Cards
+
+	cnt := 0
+	for num := card.CardsNum; num > 0; num-- {
+		if cardMap[card.SuitNum][num % card.CardsNum] == 2 {
+			cnt += 1
+
+			cardMap[card.SuitNum][num % card.CardsNum] = 0
+
+			for i := 0; i < card.SuitNum; i++ {
+				if isCard(cardMap, num, i) {
+					cardMap[i][num % card.CardsNum] = 0
+					cards = append(cards, card.Card{Number: (num % card.CardsNum), Suit: i})
+				}
+			}
+
+			if cnt == 2 {
+				cards = append(cards, maxCard(cardMap))
+				return TWO_PAIR, cards
+			}
+		}
+	}
+
+	return HIGH_CARD, Cards{}
+}
+
+func onePair(cardMap CardMap) (int, Cards) {
+	cards := findRoleWithSameCard(cardMap, 2)
+	if len(cards) == 0 {
+		return HIGH_CARD, cards
+	} else {
+		return ONE_PAIR, cards
+	}
+}
+
+func highCard(cardMap CardMap) (int, Cards) {
+	var cards Cards
+
+	for num := card.CardsNum; num > 0; num-- {
+		for i := 0; i < card.SuitNum; i++ {
+			if cardMap[i][num % card.CardsNum] == 1 {
+				cards = append(cards, card.Card{Number: num % 13, Suit: i})
+			}
+
+			if len(cards) == 5 {
+				return HIGH_CARD, cards
+			}
+		}
+	}
+
+	return HIGH_CARD, Cards{}
+}
+
+
+func findRoleWithSameCard(cardMap CardMap, numberOfCardsNeededToMakeRole int) (Cards) {
+	cards := Cards{}
+
+	for num := card.CardsNum; num > 0; num-- {
+		if cardMap[card.SuitNum][num % card.CardsNum] == numberOfCardsNeededToMakeRole {
+			// 確認済みのため0枚とする
+			cardMap[card.SuitNum][num % card.CardsNum] = 0
+
+			for i := 0; i < card.SuitNum; i++ {
+				if isCard(cardMap, num, i) {
+					cardMap[i][num % card.CardsNum] = 0
+					cards = append(cards, card.Card{Number: (num % card.CardsNum), Suit: i})
+				}
+			}
+
+			for i := 0; i < 5 - numberOfCardsNeededToMakeRole; i++{
+				tmp := maxCard(cardMap)
+				cardMap[tmp.Suit][tmp.Number] = 0
+				cards = append(cards, tmp)
+			}
+
+			return cards
+		}
+	}
+	return Cards{}
 }

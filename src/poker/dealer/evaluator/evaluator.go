@@ -7,9 +7,14 @@ import (
 
 type CardMap [card.SuitNum + 1][card.CardsNum + 1]int
 
-// 役を評価し、勝者のプレイヤーIDを返す
-func Evaluator(players []player.Player, board[5]card.Card) {
-	var points Points
+/*
+ * 役を評価し、プレイヤーごとの最適な5枚を返す
+ * @{param}:プレイヤー一覧
+ * @{param}:ボード上の5枚のカード
+ * @{result}:プレイヤーID,役,最適な5枚のカード
+*/
+ func Evaluator(players []player.Player, board[5]card.Card) Roles {
+	var roles Roles
 
 	for _, p := range players {
 		cards := join(p.Hand, board)
@@ -31,7 +36,7 @@ func Evaluator(players []player.Player, board[5]card.Card) {
 		}
 
 		if role == HIGH_CARD {
-			role, usedCards = flash(cardMap)
+			role, usedCards = flush(cardMap)
 		}
 
 		if role == HIGH_CARD {
@@ -54,15 +59,17 @@ func Evaluator(players []player.Player, board[5]card.Card) {
 			role, usedCards = highCard(cardMap)
 		}
 
-		points = append(
-			points,
-			Point{
+		roles = append(
+			roles,
+			Role{
 				PlayerId: p.Id,
 				Role: role,
 				UsedCards: usedCards,
 			},
 		)
 	}
+
+	return roles
 }
 
 func join(hand [2]card.Card, board[5]card.Card) Cards {
@@ -136,7 +143,7 @@ func straightFlush(cardMap CardMap) (int, Cards) {
 		}
 
 		if len(cards) == 5 {
-			return STRAIGHT_FLASH, cards
+			return STRAIGHT_FLUSH, cards
 		}
 	}
 
@@ -169,7 +176,7 @@ func fullHouse(cardMap CardMap) (int, Cards) {
 	return FULL_HOUSE, append(tc[0:3], op[0:2]...)
 }
 
-func flash(cardMap CardMap) (int, Cards) {
+func flush(cardMap CardMap) (int, Cards) {
 	var cards Cards
 
 	for i := 0; i < card.SuitNum; i++ {
@@ -185,7 +192,7 @@ func flash(cardMap CardMap) (int, Cards) {
 			cards = append(cards, card.Card{Number: num % card.CardsNum, Suit: i})
 		}
 
-		return FLASH, cards
+		return FLUSH, cards
 	}
 
 	return HIGH_CARD, Cards{}

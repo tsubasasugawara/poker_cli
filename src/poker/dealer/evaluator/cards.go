@@ -15,8 +15,21 @@ func (c Cards) Swap(i, j int) {
 }
 
 func (c Cards) Less(i, j int) bool {
-	if c[i].Number == c[j].Number {
+	var numI, numJ int
+
+	if c[i].Number == 0 {
+		numI = 13
+	} else {
+		numI = c[i].Number
+	}
+	if c[j].Number == 0 {
+		numJ = 13
+	} else {
+		numJ = c[j].Number
+	}
+
+	if numI == numJ {
 		return c[i].Suit < c[j].Suit
 	}
-	return c[i].Number < c[j].Number
+	return numI < numJ
 }

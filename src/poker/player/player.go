@@ -16,18 +16,17 @@ func NewPlayer(stack int) *Player {
 	return &player
 }
 
-// bet処理
-func (p *Player) Bet(chip int) int {
+func (p *Player) Bet(chip int) (int, int) {
 	if chip > p.Stack {
-		return dealer.ERROR
+		return dealer.ERROR, 0
 	} else if chip == p.Stack {
 		p.Stack = 0
-		return dealer.ALLIN
+		return dealer.ALLIN, chip
 	} else if chip > 0 {
 		p.Stack = p.Stack - chip
-		return dealer.BET
+		return dealer.BET, chip
 	} else {
-		return dealer.CHECK
+		return dealer.CHECK, chip
 	}
 }
 

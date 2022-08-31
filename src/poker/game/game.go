@@ -1,10 +1,12 @@
 package game
 
 import (
+	// "log"
+
 	"poker/poker/dealer"
 	"poker/poker/player"
-
-	"poker/poker/playing_cards/card"
+	// "poker/poker/playing_cards/card"
+	"poker/poker/dealer/judge"
 	"poker/poker/dealer/evaluator"
 )
 
@@ -26,21 +28,46 @@ func Start() {
 	}
 	p2.Id = p2id
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 10; i++ {
 		d.Shuffle()
 		res,_ := d.Deal()
 
 		p1.Hand = res[0]
 		p2.Hand = res[1]
 
-		evaluator.Evaluator(
-		[]player.Player{*p1,*p2},
-		[5]card.Card{
-			card.Card{Number: 1, Suit: 0},
-			card.Card{Number: 1, Suit: 2},
-			card.Card{Number: 1, Suit: 1},
-			card.Card{Number: 1, Suit: 3},
-			card.Card{Number: 5, Suit: 0}},
+		flop(d)
+		turn(d)
+		river(d)
+
+		roles := evaluator.Evaluator(
+			[]player.Player{*p1,*p2},
+			d.Board,
 		)
+
+		judge.Judge(roles)
 	}
+
+}
+
+func flop(d *dealer.Dealer) {
+	// バーンカードを捨てる
+	d.NextCard()
+
+	for i := 0; i < 3; i++ {
+		d.Board[i] = d.NextCard()
+	}
+}
+
+func turn(d *dealer.Dealer) {
+	// バーンカードを捨てる
+	d.NextCard()
+
+	d.Board[3] = d.NextCard()
+}
+
+func river(d *dealer.Dealer) {
+	// バーンカードを捨てる
+	d.NextCard()
+
+	d.Board[4] = d.NextCard()
 }

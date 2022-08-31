@@ -5,7 +5,6 @@
 package judge
 
 import (
-	"log"
 	"sort"
 	"math"
 
@@ -18,8 +17,8 @@ type Point struct {
 }
 
 // 勝敗を判定し、勝者のプレイヤーIDを一覧で返す
-func Judge(roles evaluator.Roles)  {
-	var winnerIds []int
+func Judge(roles evaluator.Roles) []int {
+	var winnersIds []int
 
 	// 最も強い役を探しながら
 	maxRole := evaluator.HIGH_CARD
@@ -44,24 +43,26 @@ func Judge(roles evaluator.Roles)  {
 	// 候補者の中から更に順位付けを行う
 	switch maxRole {
 		case evaluator.STRAIGHT_FLUSH:
-			winnerIds = straightFlush(candidates)
+			winnersIds = straightFlush(candidates)
 		case evaluator.FOUR_CARD:
-			winnerIds = fourCard(candidates)
+			winnersIds = fourCard(candidates)
 		case evaluator.FULL_HOUSE:
-			winnerIds = fullHouse(candidates)
+			winnersIds = fullHouse(candidates)
 		case evaluator.FLUSH:
-			winnerIds = flush(candidates)
+			winnersIds = flush(candidates)
 		case evaluator.STRAIGHT:
-			winnerIds = straight(candidates)
+			winnersIds = straight(candidates)
 		case evaluator.THREE_CARD:
-			winnerIds = threeCard(candidates)
+			winnersIds = threeCard(candidates)
 		case evaluator.TWO_PAIR:
+			winnersIds = twoPair(candidates)
 		case evaluator.ONE_PAIR:
+			winnersIds = onePair(candidates)
 		case evaluator.HIGH_CARD:
+			winnersIds = highCard(candidates)
 	}
 
-	log.Println(candidates)
-	log.Println(winnerIds)
+	return winnersIds
 }
 
 // 勝者のリストを作成

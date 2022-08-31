@@ -1,9 +1,5 @@
 package evaluator
 
-import (
-	// "poker/poker/playing_cards/card"
-)
-
 const (
 	ROYAL_STRAIGHT_FLUSH	int = 9
 	STRAIGHT_FLUSH			int = 8

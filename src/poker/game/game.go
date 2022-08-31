@@ -1,11 +1,10 @@
 package game
 
 import (
-	// "log"
+	"log"
 
 	"poker/poker/dealer"
 	"poker/poker/player"
-	// "poker/poker/playing_cards/card"
 	"poker/poker/dealer/judge"
 	"poker/poker/dealer/evaluator"
 )
@@ -44,7 +43,7 @@ func Start() {
 			d.Board,
 		)
 
-		judge.Judge(roles)
+		log.Println(judge.Judge(roles))
 	}
 
 }

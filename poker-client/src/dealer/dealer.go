@@ -5,7 +5,7 @@ import (
 	"time"
 	"errors"
 
-	"poker/poker/playing_cards/card"
+	"poker/playing_cards/card"
 )
 
 type Dealer struct {

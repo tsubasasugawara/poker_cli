@@ -3,10 +3,10 @@ package game
 import (
 	"log"
 
-	"poker/poker/dealer"
-	"poker/poker/player"
-	"poker/poker/dealer/judge"
-	"poker/poker/dealer/evaluator"
+	"poker/dealer"
+	"poker/player"
+	"poker/dealer/judge"
+	"poker/dealer/evaluator"
 )
 
 func Start() {

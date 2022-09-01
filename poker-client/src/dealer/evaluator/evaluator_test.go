@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"sort"
 
-	"poker/poker/playing_cards/card"
+	"poker/playing_cards/card"
 )
 
 type TestStructure struct {

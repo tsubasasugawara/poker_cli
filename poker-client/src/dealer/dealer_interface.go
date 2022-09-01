@@ -1,7 +1,7 @@
 package dealer
 
 import (
-	"poker/poker/playing_cards/card"
+	"poker/playing_cards/card"
 )
 
 type DealerInterface interface {

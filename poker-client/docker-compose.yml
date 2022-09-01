@@ -2,10 +2,10 @@ version: "3"
 
 services:
   go:
-    container_name: golang
+    container_name: poker-client
     build:
       context: .
-      dockerfile: ./docker/go/Go.Dockerfile
+      dockerfile: ./docker/go/go.Dockerfile
     tty: true
     volumes:
       - ./src:/go/src

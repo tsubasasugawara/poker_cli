@@ -1,8 +1,8 @@
 package evaluator
 
 import (
-	"poker/poker/playing_cards/card"
-	"poker/poker/player"
+	"poker/playing_cards/card"
+	"poker/player"
 )
 
 type CardMap [card.SuitNum + 1][card.CardsNum + 1]int

@@ -1,8 +1,8 @@
 package player
 
 import (
-	"poker/poker/playing_cards/card"
-	"poker/poker/dealer"
+	"poker/playing_cards/card"
+	"poker/dealer"
 )
 
 type Player struct {

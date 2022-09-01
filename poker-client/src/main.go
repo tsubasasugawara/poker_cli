@@ -1,7 +1,7 @@
 package main
 
 import (
-	"poker/poker/game"
+	"poker/game"
 )
 
 func main() {

@@ -19,9 +19,11 @@ services:
       - db
 
   db:
-    build: ./docker/mysql/mysql.Dockerfile
+    build:
+      context: .
+      dockerfile: ./docker/mysql/mysql.Dockerfile
     volumes:
-      - .docker/mysql/dbinit:/docker-entrypoint-initdb.d
+      - ./docker/mysql/dbinit:/docker-entrypoint-initdb.d
     environment:
       TZ: ${TZ}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}

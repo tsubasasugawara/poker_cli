@@ -10,5 +10,8 @@ start:
 stop:
 	docker compose stop
 
-go:
-	docker compose exec go /bin/bash
+web:
+	docker compose exec web /bin/sh
+
+db:
+	docker compose exec db /bin/sh

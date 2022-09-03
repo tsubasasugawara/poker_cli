@@ -1,5 +1,5 @@
 FROM mysql
 
-ADD ./my.cnf /etc/mysql/conf.d/my.conf
+ADD ./docker/mysql/my.cnf /etc/mysql/conf.d/my.cnf
 
 CMD ["mysqld"]

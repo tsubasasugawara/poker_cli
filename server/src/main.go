@@ -3,7 +3,6 @@ package main
 
 import (
 	"net/http"
-
 	"poker/controller/user"
 
     "github.com/gin-gonic/gin"
@@ -20,7 +19,7 @@ func main() {
 
 	userEngine := engine.Group("/user")
 	{
-		userEngine.POST("/register", user.Register)
+		userEngine.POST("/regist", user.Regist)
 		userEngine.POST("/login", user.Login)
 		userEngine.POST("/logout", user.Logout)
 		userEngine.POST("/delete", user.Delete)

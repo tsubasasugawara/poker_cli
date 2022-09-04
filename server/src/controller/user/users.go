@@ -6,13 +6,8 @@ import (
     "github.com/gin-gonic/gin"
 )
 
-type Users strcut {
-	Id int
-	Name string
-	password string
-}
 
-func Register(c * gin.Context){
+func Regist(c * gin.Context){
 	c.JSON(http.StatusOK, gin.H{
 		"message": "register",
 	})

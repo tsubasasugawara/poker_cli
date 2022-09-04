@@ -14,4 +14,4 @@ web:
 	docker compose exec web /bin/sh
 
 db:
-	docker compose exec db /bin/sh
+	docker compose exec postgres /bin/sh

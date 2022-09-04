@@ -21,7 +21,6 @@ func main() {
 	{
 		userEngine.POST("/regist", user.Regist)
 		userEngine.POST("/login", user.Login)
-		userEngine.POST("/logout", user.Logout)
 		userEngine.POST("/delete", user.Delete)
 		userEngine.POST("/edit", user.Edit)
 	}

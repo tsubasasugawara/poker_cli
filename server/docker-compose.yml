@@ -16,11 +16,11 @@ services:
     ports:
       - ${WEBSITES_PORT}:${WEBSITES_PORT}
     depends_on:
-      - db
+      - postgres
 
-  db:
+  postgres:
     image: postgres:alpine
-    container_name: db
+    container_name: postgres
     volumes:
       - ./dbdata:/var/lib/postgresql/data
       - ./dbinit:/docker-entrypoint-initdb.d

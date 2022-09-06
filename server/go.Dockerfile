@@ -7,7 +7,7 @@ WORKDIR /go/src
 COPY ./src /go/src/
 
 RUN apk upgrade --update &&\
-    apk add vim curl
+    apk add vim curl gcc musl-dev
 
 RUN go get github.com/gin-gonic/gin@latest &&\
     go install github.com/cosmtrek/air@latest &&\

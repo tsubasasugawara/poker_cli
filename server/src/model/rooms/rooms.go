@@ -21,6 +21,9 @@ func Insert(userid, password string) (string, error) {
 	if ValidatePassword(password) == false {
 		return "", errors.New("Illegal password.")
 	}
+	if ValidateUserId(userid) == false {
+		return "", errors.New("Illegal user id.")
+	}
 
 	db, err := sql.Open(model.DBtype, model.DBUrl)
 	if err != nil {

@@ -1,9 +1,12 @@
-package rooms
+package participants
 
-func ValidatePassword(password string) bool {
+func ValidateRoomId(id string) bool {
 	ok := true
 
-	if password == "" {
+	if id == "" {
+		ok = false
+	}
+	if len(id) != 36 {
 		ok = false
 	}
 

@@ -4,6 +4,7 @@ package main
 import (
 	"net/http"
 	"poker/controller/user"
+	"poker/controller/rooms"
 
     "github.com/gin-gonic/gin"
 )
@@ -23,6 +24,13 @@ func main() {
 		userEngine.POST("/login", user.Login)
 		userEngine.POST("/delete", user.Delete)
 		userEngine.POST("/edit", user.Edit)
+	}
+
+	roomEngine := engine.Group("/room")
+	{
+		roomEngine.POST("/create", rooms.CreateRoom)
+		roomEngine.POST("/participate", rooms.ParticipateRoom)
+		// roomEngine.POST("/exit", rooms.ExitRoom)
 	}
 
 	engine.GET("/", func(c *gin.Context) {

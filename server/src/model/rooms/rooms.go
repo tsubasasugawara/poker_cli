@@ -1,6 +1,9 @@
 package rooms
 
 import (
+	"database/sql"
+	"errors"
+
 	"poker/model"
 	"poker/lib/uuid"
 
@@ -15,7 +18,11 @@ import (
  * @{result} error
 */
 func Insert(userid, password string) (string, error) {
-	db, err := sql.Open(dbtype, dbUrl)
+	if ValidatePassword(password) == false {
+		return "", errors.New("Illegal password.")
+	}
+
+	db, err := sql.Open(model.DBtype, model.DBUrl)
 	if err != nil {
 		return "", err
 	}
@@ -25,8 +32,8 @@ func Insert(userid, password string) (string, error) {
 	_, err = db.Exec(
 		"INSERT INTO rooms (id, user_id_created_room, password) VALUES ($1, $2, $3)",
 		uuid,
-		model.Hash(password),
 		userid,
+		model.Hash(password),
 	)
 	if err != nil {
 		return "", err
@@ -43,13 +50,12 @@ func Insert(userid, password string) (string, error) {
  * @{result} error
 */
 func Select(roomId, password string) (int, error) {
-	db, err := sql.Open(dbtype, dbUrl)
+	db, err := sql.Open(model.DBtype, model.DBUrl)
 	if err != nil {
 		return model.NotOpening, err
 	}
 	defer db.Close()
 
-	uuid := uuid.Generate()
 	_, err = db.Exec(
 		"SELECT id FROM rooms WHERE id = $1 and password = $2",
 		roomId,
@@ -59,5 +65,5 @@ func Select(roomId, password string) (int, error) {
 		return model.NotExecution, err
 	}
 
-	return uuid, nil
+	return model.OK, nil
 }

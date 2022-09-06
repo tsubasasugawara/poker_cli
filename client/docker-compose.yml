@@ -9,3 +9,10 @@ services:
     tty: true
     volumes:
       - ./src:/go/src
+    networks:
+      poker:
+        ipv4_address: 172.26.0.2
+
+networks:
+  poker:
+    external: true

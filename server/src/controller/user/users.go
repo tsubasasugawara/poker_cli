@@ -17,8 +17,30 @@ func Regist(c * gin.Context) {
 	var user User
 	c.BindJSON(&user)
 
-	users := users.NewUsers()
-	id, err := users.Regist(user.Name, user.Password)
+	statusCode, err := users.Insert(user.Name, user.Password)
+	if err != nil {
+		log.Println(err)
+	}
+
+	var msg = "success"
+	if statusCode < 0 {
+		msg = "failure"
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"statusMessage": msg,
+	})
+}
+
+func Login(c * gin.Context){
+	var user User
+	c.BindJSON(&user)
+
+	id, err := users.Select(user.Name, user.Password)
+	if err != nil {
+		log.Println(err)
+	}
+
+	_, err = users.UpdateAccessDate(id)
 	if err != nil {
 		log.Println(err)
 	}
@@ -28,20 +50,43 @@ func Regist(c * gin.Context) {
 	})
 }
 
-func Login(c * gin.Context){
-	c.JSON(http.StatusOK, gin.H{
-		"message": "login",
-	})
-}
-
 func Delete(c * gin.Context){
+	var user User
+	c.BindJSON(&user)
+
+	statusCode, err := users.Delete(user.Name, user.Password)
+	if err != nil {
+		log.Println(err)
+	}
+
+	var msg = "success"
+	if statusCode < 0 {
+		msg = "failure"
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "delete",
+		"statusMessage": msg,
 	})
 }
 
 func Edit(c * gin.Context){
+	var user struct {
+		OldName string `json:"oldName"`
+		OldPassword string `json:"oldPassword"`
+		NewName string `json:"newName"`
+		NewPassword string `json:"newPassword"`
+	}
+	c.BindJSON(&user)
+
+	statusCode, err := users.Update(user.OldName, user.OldPassword, user.NewName, user.NewPassword)
+	if err != nil {
+		log.Println(err)
+	}
+
+	var msg = "success"
+	if statusCode < 0 {
+		msg = "failure"
+	}
 	c.JSON(http.StatusOK, gin.H{
-		"message": "edit",
+		"statusMessage": msg,
 	})
 }

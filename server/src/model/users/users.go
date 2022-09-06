@@ -2,31 +2,13 @@ package users
 
 import (
 	"database/sql"
-	"crypto/sha256"
-	"os"
 	"errors"
-	"encoding/hex"
+
+	"poker/lib/uuid"
+	"poker/model"
 
 	_ "github.com/lib/pq"
 )
-
-const (
-	dbtype = "postgres"
-
-	OK = 0
-	IllegalName = -1
-	IllegalPassword = -2
-	NotOpening = -3
-	NotExecution = -4
-)
-
-var dbUrl = os.Getenv("DB_URL")
-
-// ハッシュ化関数
-func hash(s string) string {
-    r := sha256.Sum256([]byte(s))
-    return hex.EncodeToString(r[:])
-}
 
 /*
  * ユーザ登録
@@ -38,45 +20,56 @@ func hash(s string) string {
 func Insert(name, password string) (int, error) {
 	// バリデーション
 	if ValidateName(name) == false {
-		return IllegalName, errors.New("Illegal name.")
+		return model.IllegalName, errors.New("Illegal name.")
 	}
 	if ValidatePassword(password) == false {
-		return IllegalPassword, errors.New("Illegal password.")
+		return model.IllegalPassword, errors.New("Illegal password.")
 	}
 
-	db, err := sql.Open(dbtype, dbUrl)
+	db, err := sql.Open(model.DBtype, model.DBUrl)
 	if err != nil {
-		return NotOpening, err
+		return model.NotOpening, err
 	}
 	defer db.Close()
 
-	_, err = db.Exec("INSERT INTO users (name, password) VALUES ($1, $2)", name, hash(password))
+	_, err = db.Exec(
+		"INSERT INTO users (id, name, password) VALUES ($1, $2, $3)",
+		uuid.Generate(),
+		name,
+		model.Hash(password),
+	)
 	if err != nil {
-		return NotExecution, err
+		return model.NotExecution, err
 	}
 
-	return OK, nil
+	return model.OK, nil
 }
 
 /*
  * select
  * @{param} name string
  * @{param} password string
- * @{result} int : 成功したときはid、失敗したときは0以外を返す
+ * @{result} string : 成功したときはid、失敗したときは空
  * @{result} error
 */
-func Select(name, password string) (int, error) {
-	db, err := sql.Open(dbtype, dbUrl)
+func Select(name, password string) (string, error) {
+	db, err := sql.Open(model.DBtype, model.DBUrl)
 	if err != nil {
-		return NotOpening, err
+		return "", err
 	}
 	defer db.Close()
 
-	var id int
-	err = db.QueryRow("SELECT id FROM users WHERE name = $1 AND password = $2", name, hash(password)).Scan(&id)
+	var id string
+	err = db.QueryRow(
+		"SELECT id FROM users WHERE name = $1 AND password = $2",
+		name,
+		model.Hash(password),
+		).Scan(&id)
+
 	if err != nil {
-		return NotExecution, err
+		return "", err
 	}
+
 
 	return id, nil
 }
@@ -89,18 +82,35 @@ func Select(name, password string) (int, error) {
  * @{result} error
 */
 func Delete(name, password string) (int, error) {
-	db, err := sql.Open(dbtype, dbUrl)
+	db, err := sql.Open(model.DBtype, model.DBUrl)
 	if err != nil {
-		return NotOpening, err
+		return model.NotOpening, err
 	}
 	defer db.Close()
 
-	_, err = db.Exec("DELETE FROM users WHERE name = $1 AND password = $2", name, hash(password))
+	id, err := Select(name, password)
 	if err != nil {
-		return NotExecution, err
+		return model.NotExecution, err
 	}
 
-	return OK, nil
+	// roomsのuser_id_created_roomが外部キーに設定されているため、先に削除する
+	_, err = db.Exec(
+		"DELETE FROM rooms WHERE user_id_created_room = $1",
+		id,
+	)
+	if err != nil {
+		return model.NotExecution, err
+	}
+
+	_, err = db.Exec(
+		"DELETE FROM users WHERE id = $1",
+		id,
+	)
+	if err != nil {
+		return model.NotExecution, err
+	}
+
+	return model.OK, nil
 }
 
 /*
@@ -113,29 +123,53 @@ func Delete(name, password string) (int, error) {
 func Update(oldName, oldPassword, newName, newPassword string) (int, error){
 	// バリデーション
 	if ValidateName(oldName) == false {
-		return IllegalName, errors.New("Illegal name.")
+		return model.IllegalName, errors.New("Illegal name.")
 	}
 	if ValidatePassword(oldPassword) == false {
-		return IllegalPassword, errors.New("Illegal password.")
+		return model.IllegalPassword, errors.New("Illegal password.")
 	}
-
 	if ValidateName(newName) == false {
-		return IllegalName, errors.New("Illegal name.")
+		return model.IllegalName, errors.New("Illegal name.")
 	}
 	if ValidatePassword(newPassword) == false {
-		return IllegalPassword, errors.New("Illegal password.")
+		return model.IllegalPassword, errors.New("Illegal password.")
 	}
 
-	db, err := sql.Open(dbtype, dbUrl)
+	db, err := sql.Open(model.DBtype, model.DBUrl)
 	if err != nil {
-		return NotOpening, err
+		return model.NotOpening, err
 	}
 	defer db.Close()
 
-	_, err = db.Exec("UPDATE users SET name = $1, password = $2 WHERE name = $3 AND password = $4", newName, hash(newPassword), oldName, hash(oldPassword))
+	_, err = db.Exec(
+		"UPDATE users SET name = $1, password = $2 WHERE name = $3 AND password = $4",
+		newName,
+		model.Hash(newPassword),
+		oldName,
+		model.Hash(oldPassword),
+	)
 	if err != nil {
-		return NotExecution, err
+		return model.NotExecution, err
 	}
 
-	return OK, nil
+	return model.OK, nil
+}
+
+
+func UpdateAccessDate(id string) (int, error) {
+	db, err := sql.Open(model.DBtype, model.DBUrl)
+	if err != nil {
+		return model.NotOpening, err
+	}
+	defer db.Close()
+
+	_, err = db.Exec(
+		"UPDATE users SET access_date = DEFAULT WHERE id = $1",
+		id,
+	)
+	if err != nil {
+		return model.NotExecution, err
+	}
+
+	return model.OK, nil
 }

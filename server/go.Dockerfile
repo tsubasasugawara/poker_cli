@@ -10,6 +10,7 @@ RUN apk upgrade --update &&\
     apk add vim curl gcc musl-dev
 
 RUN go get github.com/gin-gonic/gin@latest &&\
+    go get github.com/google/uuid@latest &&\
     go install github.com/cosmtrek/air@latest &&\
     go mod tidy
 

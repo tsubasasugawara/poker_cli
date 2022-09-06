@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"os"
 	"errors"
+	"encoding/hex"
 
 	_ "github.com/lib/pq"
 )
@@ -13,27 +14,18 @@ const (
 	dbtype = "postgres"
 
 	OK = 0
-	IllegalName = 1
-	IllegalPassword = 2
-	NotOpening = 3
-	NotPreparing = 4
-	NotExecution = 5
+	IllegalName = -1
+	IllegalPassword = -2
+	NotOpening = -3
+	NotExecution = -4
 )
+
+var dbUrl = os.Getenv("DB_URL")
 
 // ハッシュ化関数
 func hash(s string) string {
     r := sha256.Sum256([]byte(s))
-    return string(r[:])
-}
-
-type Users struct {
-	dbUrl string
-}
-
-func NewUsers() *Users {
-	users := Users{}
-	users.dbUrl = "host=" + os.Getenv("POSTGRES_HOST") + " port=" + os.Getenv("DB_PORT") + " user=" + os.Getenv("POSTGRES_USER") + " password=" + os.Getenv("POSTGRES_PASSWORD") + " dbname=" + os.Getenv("POSTGRES_DB") + " sslmode=disable"
-	return &users
+    return hex.EncodeToString(r[:])
 }
 
 /*
@@ -43,7 +35,7 @@ func NewUsers() *Users {
  * @{result} int : 成功したときは0、失敗したときは0以外を返す
  * @{result} error
 */
-func(u *Users) Regist(name, password string) (int, error) {
+func Insert(name, password string) (int, error) {
 	// バリデーション
 	if ValidateName(name) == false {
 		return IllegalName, errors.New("Illegal name.")
@@ -52,20 +44,13 @@ func(u *Users) Regist(name, password string) (int, error) {
 		return IllegalPassword, errors.New("Illegal password.")
 	}
 
-	db, err := sql.Open(dbtype, u.dbUrl)
+	db, err := sql.Open(dbtype, dbUrl)
 	if err != nil {
 		return NotOpening, err
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("INSERT INTO users (name, password) VALUES ($1, $2)")
-	if err != nil {
-		return NotPreparing, err
-	}
-	defer stmt.Close()
-
-	var id int
-	err = stmt.QueryRow(name, hash(password)).Scan(&id)
+	_, err = db.Exec("INSERT INTO users (name, password) VALUES ($1, $2)", name, hash(password))
 	if err != nil {
 		return NotExecution, err
 	}
@@ -74,32 +59,26 @@ func(u *Users) Regist(name, password string) (int, error) {
 }
 
 /*
- * ログイン
+ * select
  * @{param} name string
  * @{param} password string
- * @{result} int : 成功したときは0、失敗したときは0以外を返す
+ * @{result} int : 成功したときはid、失敗したときは0以外を返す
  * @{result} error
 */
-func(u *Users) Select(name, password string) (int, error) {
-	db, err := sql.Open(dbtype, u.dbUrl)
+func Select(name, password string) (int, error) {
+	db, err := sql.Open(dbtype, dbUrl)
 	if err != nil {
 		return NotOpening, err
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("SELECT id FROM users WHERE name = $1 AND password = $2")
-	if err != nil {
-		return NotPreparing, err
-	}
-	defer stmt.Close()
-
 	var id int
-	err = stmt.QueryRow(name, hash(password)).Scan(&id)
+	err = db.QueryRow("SELECT id FROM users WHERE name = $1 AND password = $2", name, hash(password)).Scan(&id)
 	if err != nil {
 		return NotExecution, err
 	}
 
-	return OK, nil
+	return id, nil
 }
 
 /*
@@ -109,20 +88,14 @@ func(u *Users) Select(name, password string) (int, error) {
  * @{result} int : 成功したときは0、失敗したときは0以外を返す
  * @{result} error
 */
-func(u *Users) Delete(name, password string) (int, error) {
-	db, err := sql.Open(dbtype, u.dbUrl)
+func Delete(name, password string) (int, error) {
+	db, err := sql.Open(dbtype, dbUrl)
 	if err != nil {
 		return NotOpening, err
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("DELETE FROM users WHERE name = $1 AND password = $2")
-	if err != nil {
-		return NotPreparing, err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(name, hash(password))
+	_, err = db.Exec("DELETE FROM users WHERE name = $1 AND password = $2", name, hash(password))
 	if err != nil {
 		return NotExecution, err
 	}
@@ -137,28 +110,29 @@ func(u *Users) Delete(name, password string) (int, error) {
  * @{result} int : 成功したときは0、失敗したときは0以外を返す
  * @{result} error
 */
-func(u *Users) Update(name, password string) (int, error){
+func Update(oldName, oldPassword, newName, newPassword string) (int, error){
 	// バリデーション
-	if ValidateName(name) == false {
+	if ValidateName(oldName) == false {
 		return IllegalName, errors.New("Illegal name.")
 	}
-	if ValidatePassword(password) == false {
+	if ValidatePassword(oldPassword) == false {
 		return IllegalPassword, errors.New("Illegal password.")
 	}
 
-	db, err := sql.Open(dbtype, u.dbUrl)
+	if ValidateName(newName) == false {
+		return IllegalName, errors.New("Illegal name.")
+	}
+	if ValidatePassword(newPassword) == false {
+		return IllegalPassword, errors.New("Illegal password.")
+	}
+
+	db, err := sql.Open(dbtype, dbUrl)
 	if err != nil {
 		return NotOpening, err
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("UPDATE users SET name = $1, password = $2 WHERE name = $1 AND password = $2")
-	if err != nil {
-		return NotPreparing, err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(name, hash(password))
+	_, err = db.Exec("UPDATE users SET name = $1, password = $2 WHERE name = $3 AND password = $4", newName, hash(newPassword), oldName, hash(oldPassword))
 	if err != nil {
 		return NotExecution, err
 	}

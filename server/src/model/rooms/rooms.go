@@ -18,10 +18,10 @@ import (
  * @{result} error
 */
 func Insert(userid, password string) (string, error) {
-	if ValidatePassword(password) == false {
+	if model.ValidatePassword(password) == false {
 		return "", errors.New("Illegal password.")
 	}
-	if ValidateUserId(userid) == false {
+	if model.ValidateUserId(userid) == false {
 		return "", errors.New("Illegal user id.")
 	}
 

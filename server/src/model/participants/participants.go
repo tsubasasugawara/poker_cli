@@ -43,10 +43,10 @@ func CountPlayer(roomId string) (int, error) {
 */
 func Insert(roomId, userId string) (int, error) {
 	// バリデーション
-	if ValidateRoomId(roomId) == false {
+	if model.ValidateRoomId(roomId) == false {
 		return model.IllegalRoomId, erros.New("Illegal room id.")
 	}
-	if ValidateUserId(userId) == false {
+	if model.ValidateUserId(userId) == false {
 		return model.IllegalUserId, erros.New("Illegal user id.")
 	}
 

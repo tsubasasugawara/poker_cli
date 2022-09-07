@@ -19,10 +19,10 @@ import (
 */
 func Insert(name, password string) (int, error) {
 	// バリデーション
-	if ValidateName(name) == false {
+	if model.ValidateName(name) == false {
 		return model.IllegalName, errors.New("Illegal name.")
 	}
-	if ValidatePassword(password) == false {
+	if model.ValidatePassword(password) == false {
 		return model.IllegalPassword, errors.New("Illegal password.")
 	}
 
@@ -122,16 +122,16 @@ func Delete(name, password string) (int, error) {
 */
 func Update(oldName, oldPassword, newName, newPassword string) (int, error){
 	// バリデーション
-	if ValidateName(oldName) == false {
+	if model.ValidateName(oldName) == false {
 		return model.IllegalName, errors.New("Illegal name.")
 	}
-	if ValidatePassword(oldPassword) == false {
+	if model.ValidatePassword(oldPassword) == false {
 		return model.IllegalPassword, errors.New("Illegal password.")
 	}
-	if ValidateName(newName) == false {
+	if model.ValidateName(newName) == false {
 		return model.IllegalName, errors.New("Illegal name.")
 	}
-	if ValidatePassword(newPassword) == false {
+	if model.ValidatePassword(newPassword) == false {
 		return model.IllegalPassword, errors.New("Illegal password.")
 	}
 

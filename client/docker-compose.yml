@@ -5,7 +5,7 @@ services:
     container_name: poker-client
     build:
       context: .
-      dockerfile: ./docker/go/go.Dockerfile
+      dockerfile: go.Dockerfile
     tty: true
     volumes:
       - ./src:/go/src

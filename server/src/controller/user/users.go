@@ -13,6 +13,13 @@ type User struct {
 	Password string `json:"password"`
 }
 
+/*
+ * ユーザ登録
+ * @{param} c *gin.Context
+ * @{request json} "name" : "ユーザ名"
+ * @{request json} "password" : "ユーザのパスワード"
+ * @{response} json {"statusMessage" : "success" or "failure"}
+*/
 func Regist(c * gin.Context) {
 	var user User
 	c.BindJSON(&user)
@@ -20,6 +27,7 @@ func Regist(c * gin.Context) {
 	statusCode, err := users.Insert(user.Name, user.Password)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	var msg = "success"
@@ -31,6 +39,14 @@ func Regist(c * gin.Context) {
 	})
 }
 
+/*
+ * ログイン
+ * @{param} c *gin.Context
+ * @{request json} "name" : "ユーザ名"
+ * @{request json} "password" : "ユーザのパスワード"
+ * @{response} json {"statusMessage" : "success" or "failure"}
+ * @{response} json {"id" : userID(36) or ""}
+*/
 func Login(c * gin.Context){
 	var user User
 	c.BindJSON(&user)
@@ -38,18 +54,31 @@ func Login(c * gin.Context){
 	id, err := users.Select(user.Name, user.Password)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	_, err = users.UpdateAccessDate(id)
 	if err != nil {
 		log.Println(err)
+		return
 	}
-
+	var msg = "success"
+	if id == "" {
+		msg = "failure"
+	}
 	c.JSON(http.StatusOK, gin.H{
+		"statusMessage": msg,
 		"id": id,
 	})
 }
 
+/*
+ * ユーザ削除
+ * @{param} c *gin.Context
+ * @{request json} "name" : "ユーザ名"
+ * @{request json} "password" : "ユーザのパスワード"
+ * @{response} json {"statusMessage" : "success" or "failure"}
+*/
 func Delete(c * gin.Context){
 	var user User
 	c.BindJSON(&user)
@@ -57,6 +86,7 @@ func Delete(c * gin.Context){
 	statusCode, err := users.Delete(user.Name, user.Password)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	var msg = "success"
@@ -68,6 +98,15 @@ func Delete(c * gin.Context){
 	})
 }
 
+/*
+ * ユーザ情報の編集
+ * @{param} c *gin.Context
+ * @{request json} "oldName" : "古いユーザ名"
+ * @{request json} "oldPassword" : "古いユーザのパスワード"
+ * @{request json} "newName" : "新しいユーザ名"
+ * @{request json} "newPassword" : "新しいユーザのパスワード"
+ * @{response} json {"statusMessage" : "success" or "failure"}
+*/
 func Edit(c * gin.Context){
 	var user struct {
 		OldName string `json:"oldName"`
@@ -80,6 +119,7 @@ func Edit(c * gin.Context){
 	statusCode, err := users.Update(user.OldName, user.OldPassword, user.NewName, user.NewPassword)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	var msg = "success"

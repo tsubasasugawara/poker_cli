@@ -30,7 +30,7 @@ func main() {
 	{
 		roomEngine.POST("/create", rooms.CreateRoom)
 		roomEngine.POST("/participate", rooms.ParticipateRoom)
-		// roomEngine.POST("/exit", rooms.ExitRoom)
+		roomEngine.POST("/exit", rooms.ExitRoom)
 	}
 
 	engine.GET("/", func(c *gin.Context) {

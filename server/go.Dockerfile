@@ -11,6 +11,7 @@ RUN apk upgrade --update &&\
 
 RUN go get github.com/gin-gonic/gin@latest &&\
     go get github.com/google/uuid@latest &&\
+    go get github.com/gorilla/websocket@latest &&\
     go install github.com/cosmtrek/air@latest &&\
     go mod tidy
 

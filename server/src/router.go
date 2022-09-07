@@ -1,6 +1,7 @@
 package main
 
 import (
+	"poker/controller/play"
 	"poker/controller/user"
 	"poker/controller/rooms"
 
@@ -8,6 +9,8 @@ import (
 )
 
 func router(engine *gin.Engine) {
+	engine.GET("/", play.Echo)
+
 	userEngine := engine.Group("/user")
 	{
 		userEngine.POST("/regist", user.Regist)
@@ -23,10 +26,10 @@ func router(engine *gin.Engine) {
 		roomEngine.POST("/exit", rooms.ExitRoom)
 	}
 
-	playEngine := engine.Group("/play")
-	{
-		playEngine.POST("/deal")
-		playEngine.POST("action")
+	// playEngine := engine.Group("/play")
+	// {
+	// 	playEngine.POST("/deal")
+	// 	playEngine.POST("action")
 
-	}
+	// }
 }

@@ -9,6 +9,10 @@ WORKDIR ${ROOT}
 COPY src .
 
 RUN apt update && apt upgrade -y &&\
-    apt install vim curl -y
+    apt install vim curl -y &&\
+    
+RUN go get github.com/pkg/term/termios &&\
+    go get github.com/nsf/termbox-go &&\
+    go mod tidy
 
 RUN echo "umask 000" >> ~/.profile

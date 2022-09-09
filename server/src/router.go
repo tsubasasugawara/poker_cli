@@ -29,11 +29,4 @@ func router(engine *gin.Engine) {
 		roomEngine.POST("/participate", rooms.ParticipateRoom)
 		roomEngine.POST("/exit", rooms.ExitRoom)
 	}
-
-	// playEngine := engine.Group("/play")
-	// {
-	// 	playEngine.POST("/deal")
-	// 	playEngine.POST("action")
-
-	// }
 }

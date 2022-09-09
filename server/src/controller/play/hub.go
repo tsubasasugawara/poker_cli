@@ -52,13 +52,15 @@ func (h *Hub) Run() {
 				if len(h.clients[client.Info.RoomId]) == 0 {
 					delete(h.clients, client.Info.RoomId)
 				}
-				close(client.send)
+				// close(client.send)
 			}
 
 			for client := range h.clients[client.Info.RoomId] {
 				msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, ActionType: "JOIN", Data: "Some one leave room."}
 				client.send <- msg
 			}
+
+			client.conn.Close()
 
 		case userAction := <-h.broadcast:
 			for client := range h.clients[userAction.RoomId] {

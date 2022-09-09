@@ -45,7 +45,6 @@ type Client struct {
 func (c *Client) readPump() {
 	defer func() {
 		c.hub.unregister <- c
-		c.conn.Close()
 	}()
 	for {
 		var action Action
@@ -82,7 +81,7 @@ func ServeWs(hub *Hub, c *gin.Context) {
 	}
 	client := &Client{hub: hub, conn: conn}
 	client.hub.register <- client
-	c.BindJSON(&client.Info)
+	c.ShouldBindJSON(&client.Info)
 	client.EnterAt = time.Now()
 
 	go client.writePump()

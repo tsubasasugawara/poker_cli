@@ -1,9 +1,6 @@
 package play
 
 import (
-	"bytes"
-	"encoding/json"
-	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"time"
@@ -32,17 +29,17 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-type User struct {
-	ID		string
-	Addr	string
-	EnterAt	time.Time
+type UserInfo struct {
+	UserId string `json:"userId"`
+	RoomId string `json:"roomId"`
 }
 
 type Client struct {
-	hub *Hub
-	conn *websocket.Conn
-	send chan []byte
-	User
+	hub		*Hub
+	conn	*websocket.Conn
+	send	chan Action
+	EnterAt	time.Time
+	Info	UserInfo
 }
 
 func (c *Client) readPump() {
@@ -50,62 +47,29 @@ func (c *Client) readPump() {
 		c.hub.unregister <- c
 		c.conn.Close()
 	}()
-	c.conn.SetReadLimit(maxMessageSize)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error {c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, message, err := c.conn.ReadMessage()
+		var action Action
+		err := c.conn.ReadJSON(&action)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
-		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-		data := map[string][]byte{
-			"message":	message,
-			"id":		[]byte(c.ID),
-		}
-		userMessage, _ := json.Marshal(data)
-		c.hub.broadcast <- userMessage
+		c.hub.broadcast <- action
 	}
 }
 
 func (c *Client) writePump() {
-	ticker := time.NewTicker(pingPeriod)
 	defer func() {
-		ticker.Stop()
 		c.conn.Close()
 	}()
 	for {
-		select {
-		case message, ok := <-c.send:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if !ok {
-				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-
-			w, err := c.conn.NextWriter(websocket.TextMessage)
-			if err != nil {
-				return
-			}
-			w.Write(message)
-
-			n := len(c.send)
-			for i := 0; i < n; i++ {
-				w.Write(newline)
-				w.Write(<-c.send)
-			}
-
-			if err := w.Close(); err != nil {
-				return
-			}
-		case <-ticker.C:
-			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				return
-			}
+		data := <-c.send
+		err := c.conn.WriteJSON(data)
+		if err != nil {
+			log.Printf("error: %v", err)
+			return
 		}
 	}
 }
@@ -116,18 +80,11 @@ func ServeWs(hub *Hub, c *gin.Context) {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hub, conn: conn}
 	client.hub.register <- client
-	client.ID = GenUserId()
-	client.Addr = conn.RemoteAddr().String()
+	c.BindJSON(&client.Info)
 	client.EnterAt = time.Now()
 
 	go client.writePump()
 	go client.readPump()
-
-	client.send <- []byte("welcome")
-}
-
-func GenUserId() string {
-	return (uuid.NewString())
 }

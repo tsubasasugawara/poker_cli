@@ -9,7 +9,11 @@ import (
 )
 
 func router(engine *gin.Engine) {
-	engine.GET("/", play.Echo)
+	hub := play.NewHub()
+	go hub.Run()
+	engine.GET("/ws", func(c *gin.Context) {
+		play.ServeWs(hub, c)
+	})
 
 	userEngine := engine.Group("/user")
 	{

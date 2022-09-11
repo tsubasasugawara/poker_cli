@@ -37,7 +37,7 @@ type UserInfo struct {
 type Client struct {
 	hub		*Hub
 	conn	*websocket.Conn
-	send	chan Action
+	send	chan interface{}
 	EnterAt	time.Time
 	Info	UserInfo
 }

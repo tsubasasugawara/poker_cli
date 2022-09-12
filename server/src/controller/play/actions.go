@@ -23,6 +23,11 @@ type Action struct {
  * @{resutl} error
 */
 func deal(h *Hub, userAction Action) (bool, error) {
+	// ディールの合図が２つ以上来た場合
+	if h.rooms[userAction.RoomId].State != PRE_FROP {
+		return false, nil
+	}
+
 	allIn := false
 	// ディーラーを設定
 	h.rooms[userAction.RoomId].Dealer = dealer.NewDealer()

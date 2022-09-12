@@ -179,6 +179,7 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	if h.rooms[userAction.RoomId].State == RIVER + 1 {
 		roles := evaluator.Evaluator(h.rooms[userAction.RoomId].Players, h.rooms[userAction.RoomId].Dealer.Board)
 		winner = judge.Judge(roles)
+		h.rooms[userAction.RoomId].State = PRE_FROP
 	}
 
 	return winner, nil

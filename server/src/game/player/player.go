@@ -36,7 +36,7 @@ func (p *Player) CalcStack(chip int) {
 	p.Stack = p.Stack + chip
 }
 
-func (p *Player) ResetBettingAmount(chip int) {
+func (p *Player) ResetBettingAmount() {
 	p.BettingAmount = 0
 }
 

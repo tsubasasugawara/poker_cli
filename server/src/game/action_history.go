@@ -23,6 +23,10 @@ const (
 	JOIN	int = 9
 	LEAVE	int = 10
 
+	WIN		int = 11
+	LOSE	int = 12
+	DRAW	int = 13
+
 	HISTORY_MAX int = 10
 )
 

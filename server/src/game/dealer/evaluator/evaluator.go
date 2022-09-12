@@ -1,8 +1,8 @@
 package evaluator
 
 import (
-	"poker/playing_cards/card"
-	"poker/player"
+	"poker/game/playing_cards/card"
+	"poker/game/player"
 )
 
 type CardMap [card.SuitNum + 1][card.CardsNum + 1]int
@@ -13,7 +13,7 @@ type CardMap [card.SuitNum + 1][card.CardsNum + 1]int
  * @{param}:ボード上の5枚のカード
  * @{result}:プレイヤーID,役,最適な5枚のカード
 */
- func Evaluator(players []player.Player, board[5]card.Card) Roles {
+ func Evaluator(players []*player.Player, board[5]card.Card) Roles {
 	var roles Roles
 
 	for _, p := range players {

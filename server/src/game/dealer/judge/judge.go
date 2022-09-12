@@ -8,7 +8,7 @@ import (
 	"sort"
 	"math"
 
-	"poker/dealer/evaluator"
+	"poker/game/dealer/evaluator"
 )
 
 type Point struct {

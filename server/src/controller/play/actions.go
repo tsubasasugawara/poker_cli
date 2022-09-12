@@ -74,8 +74,6 @@ func deal(h *Hub, userAction Action) (bool, error) {
 		h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.BigBlindPosition].CalcBettingAmount(-1 * diff)
 	}
 
-	// ディーラーが管理するポットに追加
-	h.rooms[userAction.RoomId].Dealer.CalcPot(bbBettingAmount + sbBettingAmount)
 	h.rooms[userAction.RoomId].ActionHistory.AppendActionHistory(game.History{Action: game.DEAL})
 
 	return allIn, nil

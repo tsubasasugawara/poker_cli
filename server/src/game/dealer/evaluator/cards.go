@@ -1,7 +1,7 @@
 package evaluator
 
 import (
-	"poker/playing_cards/card"
+	"poker/game/playing_cards/card"
 )
 
 type Cards []card.Card

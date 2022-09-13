@@ -3,6 +3,7 @@ package play
 import (
 	"poker/game"
 	"poker/game/player"
+	"poker/controller/play/drawing"
 )
 
 type Hub struct {
@@ -45,7 +46,7 @@ func (h *Hub) Run() {
 			}
 
 			for client := range h.clients[client.Info.RoomId] {
-				msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, ActionType: game.JOIN, Data: "Some one join room."}
+				msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, Data: "Some one join room."}
 				client.send <- msg
 			}
 
@@ -83,7 +84,28 @@ func (h *Hub) Run() {
 			}
 
 		case userAction := <-h.broadcast:
-			GameProgress(h, userAction)
+			winner, err := GameProgress(h, userAction)
+
+			for client := range h.clients[userAction.RoomId] {
+				var data string
+				if err != nil {
+					data = err.Error()
+				} else {
+					data = drawing.Drawing(
+							h.rooms[userAction.RoomId].Players,
+							h.rooms[userAction.RoomId].Dealer.Board,
+							client.Info.UserId,
+							winner,
+						)
+				}
+
+				msg := Action{
+					UserId: client.Info.UserId,
+					RoomId: client.Info.RoomId,
+					Data: data,
+				}
+				client.send <- msg
+			}
 		}
 	}
 }

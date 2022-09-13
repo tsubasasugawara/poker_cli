@@ -11,7 +11,7 @@ import (
 func router(engine *gin.Engine) {
 	hub := play.NewHub()
 	go hub.Run()
-	engine.GET("/ws", func(c *gin.Context) {
+	engine.GET("/play", func(c *gin.Context) {
 		play.ServeWs(hub, c)
 	})
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"poker/game/playing_cards/card"
-	"poker/controller/play"
+	"poker/controller/play/util"
 	"poker/game/player"
 )
 
@@ -16,14 +16,14 @@ import (
  * @{param} winner 	[]int 			 勝敗がついたら勝者のID
  * @{result} 		string			 ターミナルに表示する文字列
  */
-func drawing(players []*player.Player, board [5]card.Card, uid string, winner []int) (string) {
-	idx := play.getPlayerIndex(players, uid)
+func Drawing(players []*player.Player, board [5]card.Card, uid string, winner []int) (string) {
+	idx := util.GetPlayerIndex(players, uid)
 
 	p1 := players[1 - idx]
 	p2 := players[idx]
 
-	p1WinMsg = ""
-	p2WinMsg = ""
+	p1Msg := ""
+	p2Msg := ""
 
 	if len(winner) == len(players) {
 		p1Msg = "DRAW"

@@ -1,6 +1,6 @@
 package drawing
 
-const template := `
+var template = `
 
 a : CHECK, f : FOLD, c : CALL, 数字(例:1000) : BET(1000点のベット)
 

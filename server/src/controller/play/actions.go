@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"poker/game"
+	"poker/controller/play/util"
 	"poker/game/dealer"
 )
 
@@ -99,7 +100,7 @@ func bet(h *Hub, userAction Action) (bool, error) {
 
 	// チップの指定した量がプレイヤーの持っている量よりも多い場合はオールインとする
 	allIn := false
-	playerIndex := getPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)
+	playerIndex := util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)
 	if stack := h.rooms[userAction.RoomId].Players[playerIndex].Stack; stack < chip {
 		chip = stack
 		allIn = true
@@ -140,7 +141,7 @@ func call(h *Hub, userAction Action) (bool, error) {
 	}
 
 	// アクションをしたプレイヤーのインデックス取得
-	playerIndex := getPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)
+	playerIndex := util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)
 
 	// 相手のベット金額と自分のベット金額の差額
 	chip := h.rooms[userAction.RoomId].Players[1 - playerIndex].BettingAmount - h.rooms[userAction.RoomId].Players[playerIndex].BettingAmount
@@ -166,7 +167,7 @@ func call(h *Hub, userAction Action) (bool, error) {
 */
 func check(h *Hub, userAction Action) (error) {
 	// アクションをしたプレイヤーのインデックス取得
-	playerIndex := getPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)
+	playerIndex := util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)
 
 	// もし相手のベット金額と同じでない場合はチェックできない
 	if h.rooms[userAction.RoomId].Players[playerIndex].BettingAmount != h.rooms[userAction.RoomId].Players[1 - playerIndex].BettingAmount {

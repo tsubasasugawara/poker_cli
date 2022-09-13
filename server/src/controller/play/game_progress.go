@@ -6,19 +6,9 @@ import (
 
 	"poker/game"
 	"poker/game/dealer/evaluator"
+	"poker/controller/play/util"
 	"poker/game/dealer/judge"
-	"poker/game/player"
 )
-
-func getPlayerIndex(players []*player.Player, uid string) (int) {
-	playerIndex := 0
-	for i, p := range players {
-		if uid == p.Uuid {
-			playerIndex = i
-		}
-	}
-	return playerIndex
-}
 
 /*
  * 次のステップへ進むかどうかを判定
@@ -130,7 +120,7 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	switch userAction.ActionType {
 	case game.FOLD:
 		h.rooms[userAction.RoomId].State = PRE_FROP
-		return []int{getPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)}, nil
+		return []int{util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)}, nil
 	default:
 		allIn, err = h.Actions(userAction)
 		if err != nil {

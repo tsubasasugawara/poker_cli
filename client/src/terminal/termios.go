@@ -2,15 +2,15 @@ package terminal
 
 import (
 	"syscall"
+	"golang.org/x/sys/unix"
 
 	"github.com/pkg/term/termios"
 )
 
 // 起動時のtermiosの設定
-func SettingTermios() {
-	termios.Tcgetattr(uintptr(syscall.Stdin), &Editor.defaultTtystate)
-	ttystate := Editor.defaultTtystate
-	setRawMode(&ttystate)
+func SettingTermios(defaultTtyState *unix.Termios) {
+	termios.Tcgetattr(uintptr(syscall.Stdin), defaultTtyState)
+	setRawMode(defaultTtyState)
 }
 
 // 非カノニカルモードに設定する

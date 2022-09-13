@@ -4,33 +4,36 @@ import (
     // "net/url"
 	// "encoding/json"
 	// "net/http"
-	"log"
 	// "poker/game"
-
-	"github.com/nsf/termbox-go"
+	"bufio"
+	"os"
 	"poker/terminal"
+	"poker/terminal/utils"
+	"poker/game/user"
+)
+
+var (
+	USER_ID = ""
+	ROOM_ID = ""
 )
 
 func main() {
-	// game.Start()
-	// resp, err := http.Get("http://172.26.0.3:8080")
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// defer resp.Body.Close()
+	scanner := bufio.NewScanner(os.Stdin)
 
-	// var j interface{}
-	// err = json.NewDecoder(resp.Body).Decode(&j)
-	// if err != nil {
-	// 	log.Println(err)
-	// }
-	// log.Println(j)
+	USER_ID = user.Pre(scanner)
+	utils.Clear()
 
-	terminal.SettingTermios()
-
-	err := termbox.Init()
-	if err != nil {
-		log.Fatal(err)
+	running := true
+	for running {
+		scanner.Scan()
+		switch scanner.Text() {
+		case "play":
+			terminal.Run()
+		case "exit":
+			running = false
+		}
+		utils.Clear()
 	}
-	defer termbox.Close()
+
+
 }

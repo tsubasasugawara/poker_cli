@@ -2,7 +2,19 @@ package terminal
 
 import (
 	"syscall"
-	
+	"log"
+)
+
+const (
+	ENTER 	byte = 13
+	CtrlC 	byte = 3
+
+	C		byte = 99
+	A 		byte = 97
+	F		byte = 102
+
+	ONE		byte = 49
+	NINE	byte = 57
 )
 
 // バッファの値を取得する
@@ -23,7 +35,11 @@ func GetChar() {
 	running := true
 	for running {
 		p := <-bufCh
-		if p != "" {
+
+		switch p[0] {
+		case CtrlC:
+			running = false
+		default:
 			log.Println(p)
 		}
 	}

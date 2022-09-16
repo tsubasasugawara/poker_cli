@@ -105,6 +105,9 @@ func (h *Hub) Run() {
 
 		case userAction := <-h.broadcast:
 			winner, err := GameProgress(h, userAction)
+			if err != nil {
+				continue
+			}
 
 			for client := range h.clients[userAction.RoomId] {
 				var data TransmissionData

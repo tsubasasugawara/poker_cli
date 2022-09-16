@@ -5,11 +5,13 @@ import (
 	// "encoding/json"
 	// "net/http"
 	// "poker/game"
+	"fmt"
 	"bufio"
 	"os"
-	"poker/terminal"
+	// "poker/terminal"
 	"poker/terminal/utils"
 	"poker/game/user"
+	"poker/game/room"
 )
 
 var (
@@ -28,11 +30,14 @@ func main() {
 		scanner.Scan()
 		switch scanner.Text() {
 		case "play":
-			terminal.Run()
+			room.Participate(USER_ID, scanner)
+		case "create":
+			ROOM_ID := room.Create(USER_ID, scanner)
+			fmt.Printf("Your room id is \"%s\". \n", ROOM_ID)
 		case "exit":
 			running = false
 		}
-		utils.Clear()
+		fmt.Println()
 	}
 
 

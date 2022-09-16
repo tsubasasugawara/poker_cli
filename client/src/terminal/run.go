@@ -4,14 +4,15 @@ import (
 	"log"
 
 	"github.com/nsf/termbox-go"
+	"github.com/gorilla/websocket"
 )
 
-func Run() {
+func Run(uid, roomId string, conn *websocket.Conn) {
 	err := termbox.Init()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer termbox.Close()
 
-	GetChar()
+	GetChar(uid, roomId, conn)
 }

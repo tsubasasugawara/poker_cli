@@ -108,6 +108,10 @@ func river(h *Hub, userAction Action) (error) {
  * @{return} []int : 勝敗が決まったら勝者のインデックス番号を返す。決まらなければ長さ0
  */
 func GameProgress(h *Hub, userAction Action) ([]int, error) {
+	// 人数がたりない
+	if len(h.rooms[userAction.RoomId].Players) != 2 {
+		return []int{}, errors.New("Not enough players.")
+	}
 	// もし現在アクションしていいプレイヤーでなければ何もしない
 	if h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.CurrentPlayer].Uuid != userAction.UserId {
 		return []int{}, errors.New("Illegal Player.")

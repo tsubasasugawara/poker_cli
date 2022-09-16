@@ -8,4 +8,7 @@ require (
 	golang.org/x/sys v0.0.0-20200909081042-eff7692f9009
 )
 
-require github.com/mattn/go-runewidth v0.0.9 // indirect
+require (
+	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/mattn/go-runewidth v0.0.9 // indirect
+)

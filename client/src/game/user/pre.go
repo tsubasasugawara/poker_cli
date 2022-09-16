@@ -3,7 +3,6 @@ package user
 import (
 	"bufio"
 	"fmt"
-
 )
 
 func Pre(scanner *bufio.Scanner) (string) {

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+	"encoding/json"
 
     "github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -47,15 +48,15 @@ func (c *Client) readPump() {
 		c.hub.unregister <- c
 	}()
 	for {
-		var action Action
-		err := c.conn.ReadJSON(&action)
+		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
 			break
 		}
-		c.hub.broadcast <- action
+
+		c.hub.broadcast <- json.UnMarshal(msg)
 	}
 }
 
@@ -65,7 +66,13 @@ func (c *Client) writePump() {
 	}()
 	for {
 		data := <-c.send
-		err := c.conn.WriteJSON(data)
+		msg, err := json.Marshal(data)
+		if err != nil {
+			log.Printf("error: %v", err)
+			return
+		}
+
+		err = c.conn.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
 			log.Printf("error: %v", err)
 			return

@@ -79,9 +79,11 @@ func ServeWs(hub *Hub, c *gin.Context) {
 		log.Println(err)
 		return
 	}
+
 	client := &Client{hub: hub, conn: conn}
 	client.hub.register <- client
-	c.ShouldBindJSON(&client.Info)
+	client.Info.UserId = c.Request.Header.Get("userId")
+	client.Info.RoomId = c.Request.Header.Get("roomId")
 	client.EnterAt = time.Now()
 
 	go client.writePump()

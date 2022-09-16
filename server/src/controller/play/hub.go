@@ -3,7 +3,7 @@ package play
 import (
 	"poker/game"
 	"poker/game/player"
-	"poker/controller/play/drawing"
+	"poker/game/dealer"
 )
 
 type Hub struct {
@@ -15,6 +15,13 @@ type Hub struct {
 	unregister chan *Client
 }
 
+type TransmissionData struct {
+	dealer 	dealer.Dealer 	`json:"dealer"`
+	players []player.Player	`json:"players"`
+	winner 	[]int			`json:"winner"`
+	errMsg	error			`json:"errMsg"`
+}
+
 func NewHub() *Hub {
 	return &Hub{
 		broadcast:	make(chan Action),
@@ -22,6 +29,17 @@ func NewHub() *Hub {
 		unregister:	make(chan *Client),
 		clients:	make(map[string]map[*Client]bool),
 		rooms:		make(map[string]*Room),
+	}
+}
+
+func (h *Hub) makeRoom(roomId string) {
+	if _, exist := h.rooms[roomId]; !exist {
+		h.rooms[roomId] = &Room{
+			Dealer: dealer.NewDealer(),
+			Players: []*player.Player{},
+			ActionHistory: game.ActionHistory{},
+			Rate: 200,
+		}
 	}
 }
 
@@ -40,6 +58,7 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.register:
+			h.makeRoom(client.Info.RoomId)
 			// ヘッズアップのみに制限
 			if len(h.rooms[client.Info.RoomId].Players) >= 2 {
 				h.unregister <- client
@@ -49,6 +68,7 @@ func (h *Hub) Run() {
 				msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, Data: "Some one join room."}
 				client.send <- msg
 			}
+
 
 			h.addClient(client.Info.RoomId, client)
 
@@ -87,24 +107,18 @@ func (h *Hub) Run() {
 			winner, err := GameProgress(h, userAction)
 
 			for client := range h.clients[userAction.RoomId] {
-				var data string
+				var data TransmissionData
 				if err != nil {
-					data = err.Error()
+					data = TransmissionData{errMsg: err}
 				} else {
-					data = drawing.Drawing(
-							h.rooms[userAction.RoomId].Players,
-							h.rooms[userAction.RoomId].Dealer.Board,
-							client.Info.UserId,
-							winner,
-						)
+					data = TransmissionData{
+						dealer: *h.rooms[userAction.RoomId].Dealer,
+						players: []player.Player{*h.rooms[userAction.RoomId].Players[0], *h.rooms[userAction.RoomId].Players[1]},
+						winner: winner,
+					}
 				}
 
-				msg := Action{
-					UserId: client.Info.UserId,
-					RoomId: client.Info.RoomId,
-					Data: data,
-				}
-				client.send <- msg
+				client.send <- data
 			}
 		}
 	}

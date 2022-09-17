@@ -56,7 +56,13 @@ func (c *Client) readPump() {
 			break
 		}
 
-		c.hub.broadcast <- json.UnMarshal(msg)
+		var action Action
+		err = json.Unmarshal(msg, &action)
+		if err != nil {
+			log.Printf("error: %v", err)
+			continue
+		}
+		c.hub.broadcast <- action
 	}
 }
 

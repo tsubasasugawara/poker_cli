@@ -3,6 +3,8 @@ package terminal
 import (
 	"syscall"
 	"log"
+	"encoding/json"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -50,12 +52,20 @@ func GetChar(userId, roomId string, conn *websocket.Conn) {
 		case ENTER:
 			log.Println(betAmount)
 
-			err := conn.WriteJSON(Action{
-				UserId: userId,
-				RoomId: roomId,
-				ActionType: BET,
-				Data: betAmount,
-			})
+			msg, err := json.Marshal(
+				Action{
+					UserId: userId,
+					RoomId: roomId,
+					ActionType: BET,
+					Data: betAmount,
+				},
+			)
+			if err != nil {
+				log.Println("json marshal error: ", err)
+				return
+			}
+
+			err = conn.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				log.Println("write close:", err)
 				return
@@ -69,27 +79,42 @@ func GetChar(userId, roomId string, conn *websocket.Conn) {
 			}
 
 		case C:
-			err := conn.WriteJSON(Action{
-				UserId: userId,
-				RoomId: roomId,
-				ActionType: CALL,
-				Data: "",
-			})
+			msg, err := json.Marshal(
+				Action{
+					UserId: userId,
+					RoomId: roomId,
+					ActionType: CALL,
+					Data: "",
+				},
+			)
+			if err != nil {
+				log.Println("json marshal error: ", err)
+				return
+			}
+
+			err = conn.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				log.Println("write close:", err)
 				return
 			}
 
 			betAmount = ""
-			log.Println("success");
 
 		case A:
-			err := conn.WriteJSON(Action{
-				UserId: userId,
-				RoomId: roomId,
-				ActionType: CHECK,
-				Data: "",
-			})
+			msg, err := json.Marshal(
+				Action{
+					UserId: userId,
+					RoomId: roomId,
+					ActionType: CHECK,
+					Data: "",
+				},
+			)
+			if err != nil {
+				log.Println("json marshal error: ", err)
+				return
+			}
+
+			err = conn.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				log.Println("write close:", err)
 				return
@@ -98,12 +123,20 @@ func GetChar(userId, roomId string, conn *websocket.Conn) {
 			betAmount = ""
 
 		case F:
-			err := conn.WriteJSON(Action{
-				UserId: userId,
-				RoomId: roomId,
-				ActionType: FOLD,
-				Data: "",
-			})
+			msg, err := json.Marshal(
+				Action{
+					UserId: userId,
+					RoomId: roomId,
+					ActionType: FOLD,
+					Data: "",
+				},
+			)
+			if err != nil {
+				log.Println("json marshal error: ", err)
+				return
+			}
+
+			err = conn.WriteMessage(websocket.TextMessage, msg)
 			if err != nil {
 				log.Println("write close:", err)
 				return

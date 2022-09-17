@@ -33,9 +33,10 @@ type Action struct {
  * ルームに参加する
  * @{param} uid string : ユーザID
  * @{param} scanner *bufio.Scanner
- * @{return} string : ステータスメッセージ
+ * @{return} string : 接続したルームのID
+ * @{return} error
  */
-func Participate(uid string, scanner *bufio.Scanner) (string) {
+func Participate(uid string, scanner *bufio.Scanner) (string, error) {
 	fmt.Println("Please enter the room id.")
 	fmt.Print("ID : ")
 	scanner.Scan()
@@ -49,21 +50,21 @@ func Participate(uid string, scanner *bufio.Scanner) (string) {
 	body, _ := json.Marshal(Room{UserId: uid, RoomId: roomId, Password: password})
 	resp, err := http.Post(env.ROOT + "/room/participate", "application/json; charset=UTF-8", bytes.NewBuffer(body))
 	if err != nil {
-		return ""
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	var j Message
 	err = json.NewDecoder(resp.Body).Decode(&j)
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	if j.Status == "success" {
 		Connect(uid, roomId)
 	}
 
-	return j.Status
+	return roomId, nil
 }
 
 var addr = flag.String("addr", strings.Replace(env.ROOT, "http://", "", -1), "http service address")
@@ -99,17 +100,26 @@ func Connect(uid, roomId string) {
 	go func() {
 		defer close(done)
 		for {
-			var action Action
-			err := c.ReadJSON(&action)
+			_, msg, err := c.ReadMessage()
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					log.Printf("error: %v", err)
+				}
+				break
+			}
+
+			var data interface{}
+			err = json.Unmarshal(msg, &data)
+			log.Println("read data: ", data)
 			if err != nil {
 				log.Println("read:", err)
 				return
 			}
-			log.Println(action)
+			log.Println("read: ", data)
 		}
 	}()
 
-	terminal.Run(uid, roomId, c)
+	terminal.Run(uid, roomId, c, &swg)
 	// ticker := time.NewTicker(time.Second)
 	// defer ticker.Stop()
 

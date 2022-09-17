@@ -1,6 +1,7 @@
 package play
 
 import (
+	"log"
 	"poker/game"
 	"poker/game/player"
 	"poker/game/dealer"
@@ -106,6 +107,7 @@ func (h *Hub) Run() {
 		case userAction := <-h.broadcast:
 			winner, err := GameProgress(h, userAction)
 			if err != nil {
+				log.Println("game progress error.")
 				continue
 			}
 

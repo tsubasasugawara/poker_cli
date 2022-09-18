@@ -66,7 +66,7 @@ func main() {
 			running = false
 		}
 
-		utils.Clear()
+		fmt.Printf("\n\n\n")
 	}
 
 

@@ -17,11 +17,11 @@ type Hub struct {
 }
 
 type TransmissionData struct {
-	dealer 	dealer.Dealer 	`json:"dealer"`
-	players []player.Player	`json:"players"`
-	winner 	[]int			`json:"winner"`
-	msg		string			`json:"msg"`
-	errMsg	error			`json:"errMsg"`
+	Dealer 	dealer.Dealer 	`json:"dealer"`
+	Players []player.Player	`json:"players"`
+	Winner 	[]int			`json:"winner"`
+	Msg		string			`json:"msg"`
+	ErrMsg	error			`json:"errMsg"`
 }
 
 func NewHub() *Hub {
@@ -45,6 +45,7 @@ func (h *Hub) makeRoom(roomId string) {
 	}
 }
 
+// Clientの接続情報を追加
 func (h *Hub) addClient(roomId string, client *Client) {
 	if _, exist := h.clients[roomId]; !exist {
     	h.clients[roomId] = make(map[*Client]bool)
@@ -52,6 +53,7 @@ func (h *Hub) addClient(roomId string, client *Client) {
 	h.clients[roomId][client] = true
 }
 
+// プレイヤーをルームに追加
 func (h *Hub) addPlayer(roomId string, userId string) {
 	h.rooms[roomId].Players = append(h.rooms[roomId].Players, player.NewPlayer(5000, userId))
 }
@@ -85,11 +87,6 @@ func (h *Hub) Run() {
 				}
 			}
 
-			// for client := range h.clients[client.Info.RoomId] {
-			// 	msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, ActionType: game.LEAVE, Data: "Some one leave room."}
-			// 	client.send <- msg
-			// }
-
 			client.conn.Close()
 
 			// ルームからプレイヤーを削除
@@ -105,10 +102,11 @@ func (h *Hub) Run() {
 				log.Println("game progress error.")
 			}
 
+			// 同じルームのユーザにデータを送信
 			for client := range h.clients[userAction.RoomId] {
 				var data TransmissionData
 				if err != nil {
-					data = TransmissionData{errMsg: err}
+					data = TransmissionData{ErrMsg: err}
 				} else {
 					var players []player.Player
 					for _, player := range h.rooms[userAction.RoomId].Players {
@@ -116,14 +114,13 @@ func (h *Hub) Run() {
 					}
 
 					data = TransmissionData{
-						dealer: *h.rooms[userAction.RoomId].Dealer,
-						players: players,
-						winner: winner,
+						Dealer: *h.rooms[userAction.RoomId].Dealer,
+						Players: players,
+						Winner: winner,
 					}
 				}
 
-				// この処理によって動作不良発生
-				// チャネルにデータが渡っていない
+				// チャネルにデータを送る
 				select {
 				case client.send <- data:
 				default:

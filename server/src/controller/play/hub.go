@@ -20,14 +20,15 @@ type TransmissionData struct {
 	dealer 	dealer.Dealer 	`json:"dealer"`
 	players []player.Player	`json:"players"`
 	winner 	[]int			`json:"winner"`
+	msg		string			`json:"msg"`
 	errMsg	error			`json:"errMsg"`
 }
 
 func NewHub() *Hub {
 	return &Hub{
-		broadcast:	make(chan Action),
-		register:	make(chan *Client),
-		unregister:	make(chan *Client),
+		broadcast:	make(chan Action, 5),
+		register:	make(chan *Client, 5),
+		unregister:	make(chan *Client, 5),
 		clients:	make(map[string]map[*Client]bool),
 		rooms:		make(map[string]*Room),
 	}
@@ -60,16 +61,11 @@ func (h *Hub) Run() {
 		select {
 		case client := <-h.register:
 			h.makeRoom(client.Info.RoomId)
+
 			// ヘッズアップのみに制限
 			if len(h.rooms[client.Info.RoomId].Players) >= 2 {
-				h.unregister <- client
+				continue
 			}
-
-			for c := range h.clients[client.Info.RoomId] {
-				msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, Data: "Some one join room."}
-				c.send <- msg
-			}
-
 
 			h.addClient(client.Info.RoomId, client)
 
@@ -87,13 +83,12 @@ func (h *Hub) Run() {
 				if len(h.clients[client.Info.RoomId]) == 0 {
 					delete(h.clients, client.Info.RoomId)
 				}
-				// close(client.send)
 			}
 
-			for client := range h.clients[client.Info.RoomId] {
-				msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, ActionType: game.LEAVE, Data: "Some one leave room."}
-				client.send <- msg
-			}
+			// for client := range h.clients[client.Info.RoomId] {
+			// 	msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, ActionType: game.LEAVE, Data: "Some one leave room."}
+			// 	client.send <- msg
+			// }
 
 			client.conn.Close()
 
@@ -108,7 +103,6 @@ func (h *Hub) Run() {
 			winner, err := GameProgress(h, userAction)
 			if err != nil {
 				log.Println("game progress error.")
-				continue
 			}
 
 			for client := range h.clients[userAction.RoomId] {
@@ -128,7 +122,13 @@ func (h *Hub) Run() {
 					}
 				}
 
-				client.send <- data
+				// この処理によって動作不良発生
+				// チャネルにデータが渡っていない
+				select {
+				case client.send <- data:
+				default:
+					log.Println("default")
+				}
 			}
 		}
 	}

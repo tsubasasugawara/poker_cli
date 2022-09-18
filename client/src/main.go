@@ -29,8 +29,8 @@ type Data struct {
 }
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
 
+	scanner := bufio.NewScanner(os.Stdin)
 	USER_ID = user.Pre(scanner)
 	utils.Clear()
 
@@ -38,7 +38,7 @@ func main() {
 	for running {
 		scanner.Scan()
 		switch scanner.Text() {
-		case "play":
+		case "p":
 			roomId, _ := room.Participate(USER_ID, scanner)
 
 			// roomから退出する
@@ -49,24 +49,24 @@ func main() {
 				},
 			)
 			if err != nil {
-				log.Println("error: ", err)
+				log.Println("json error: ", err)
 			}
 
 			resp, err := http.Post(env.ROOT + "/room/exit", "application/json; charset=UTF-8", bytes.NewBuffer(body))
 			if err != nil {
-				log.Println("error: ", err)
+				log.Println("post error: ", err)
 			}
 			defer resp.Body.Close()
 
-		case "create":
+		case "c":
 			ROOM_ID := room.Create(USER_ID, scanner)
 			fmt.Printf("Your room id is \"%s\". \n", ROOM_ID)
 
-		case "exit":
+		case "e":
 			running = false
 		}
 
-		fmt.Println()
+		utils.Clear()
 	}
 
 

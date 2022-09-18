@@ -151,4 +151,10 @@ func GetChar(userId, roomId string, conn *websocket.Conn) {
 			log.Println(p)
 		}
 	}
+
+	err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure,""))
+	if err != nil {
+		log.Println("write close:", err)
+	}
+	return
 }

@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/signal"
 	"strings"
-	"sync"
 	// "time"
 
 	"poker/terminal"
@@ -111,7 +110,7 @@ func Connect(uid, roomId string) {
 
 			var data interface{}
 			err = json.Unmarshal(msg, &data)
-			log.Println("read data: ", data)
+			log.Println("read data: ", string(msg))
 			if err != nil {
 				log.Println("read:", err)
 				return
@@ -120,13 +119,7 @@ func Connect(uid, roomId string) {
 		}
 	}()
 
-	var swg sync.WaitGroup
-
-	swg.Add(1)
-
-	go terminal.Run(uid, roomId, c, &swg)
-
-	swg.Wait()
+	terminal.Run(uid, roomId, c)
 
 	// ticker := time.NewTicker(time.Second)
 	// defer ticker.Stop()

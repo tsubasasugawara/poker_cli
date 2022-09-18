@@ -38,7 +38,7 @@ type UserInfo struct {
 type Client struct {
 	hub		*Hub
 	conn	*websocket.Conn
-	send	chan interface{}
+	send	chan TransmissionData
 	EnterAt	time.Time
 	Info	UserInfo
 }
@@ -49,6 +49,7 @@ func (c *Client) readPump() {
 	}()
 	for {
 		_, msg, err := c.conn.ReadMessage()
+		log.Println(string(msg))
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
@@ -71,17 +72,25 @@ func (c *Client) writePump() {
 		c.conn.Close()
 	}()
 	for {
-		data := <-c.send
+		data, ok := <- c.send
+		if !ok {
+			err := c.conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			if err != nil {
+				log.Println("write close:", err)
+			}
+			break
+		}
+
 		msg, err := json.Marshal(data)
 		if err != nil {
 			log.Printf("error: %v", err)
-			return
+			continue
 		}
 
 		err = c.conn.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
 			log.Printf("error: %v", err)
-			return
+			break
 		}
 	}
 }
@@ -97,6 +106,7 @@ func ServeWs(hub *Hub, c *gin.Context) {
 	client.Info.UserId = c.Request.Header.Get("userId")
 	client.Info.RoomId = c.Request.Header.Get("roomId")
 	client.EnterAt = time.Now()
+	client.send = make(chan TransmissionData)
 	client.hub.register <- client
 
 	go client.writePump()

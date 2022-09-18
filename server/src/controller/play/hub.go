@@ -65,9 +65,9 @@ func (h *Hub) Run() {
 				h.unregister <- client
 			}
 
-			for client := range h.clients[client.Info.RoomId] {
+			for c := range h.clients[client.Info.RoomId] {
 				msg := Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, Data: "Some one join room."}
-				client.send <- msg
+				c.send <- msg
 			}
 
 
@@ -116,9 +116,14 @@ func (h *Hub) Run() {
 				if err != nil {
 					data = TransmissionData{errMsg: err}
 				} else {
+					var players []player.Player
+					for _, player := range h.rooms[userAction.RoomId].Players {
+						players = append(players, *player)
+					}
+
 					data = TransmissionData{
 						dealer: *h.rooms[userAction.RoomId].Dealer,
-						players: []player.Player{*h.rooms[userAction.RoomId].Players[0], *h.rooms[userAction.RoomId].Players[1]},
+						players: players,
 						winner: winner,
 					}
 				}

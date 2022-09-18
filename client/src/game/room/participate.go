@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	// "time"
 
 	"poker/terminal"
@@ -87,7 +88,7 @@ func Connect(uid, roomId string) {
 
 	header := http.Header{}
 	header.Add("userId", uid)
-	header.Add("rommId", roomId)
+	header.Add("roomId", roomId)
 
 	c, _, err := websocket.DefaultDialer.Dial(u.String(), header)
 	if err != nil {
@@ -119,7 +120,14 @@ func Connect(uid, roomId string) {
 		}
 	}()
 
-	terminal.Run(uid, roomId, c, &swg)
+	var swg sync.WaitGroup
+
+	swg.Add(1)
+
+	go terminal.Run(uid, roomId, c, &swg)
+
+	swg.Wait()
+
 	// ticker := time.NewTicker(time.Second)
 	// defer ticker.Stop()
 

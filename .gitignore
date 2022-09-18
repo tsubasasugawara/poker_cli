@@ -1,8 +1,6 @@
 web_system_configuration_chart.drawio
 .env
-dbinit/
 my.cnf
-.air.toml
 TODO
 dbdata/
 tmp

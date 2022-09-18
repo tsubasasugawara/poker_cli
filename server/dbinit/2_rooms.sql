@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS rooms (
+    id VARCHAR(36) NOT NULL PRIMARY KEY UNIQUE,
+    user_id_created_room VARCHAR(36) NOT NULL,
+    password VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id_created_room) REFERENCES users(id)
+);

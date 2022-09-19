@@ -2,6 +2,7 @@ package drawing
 
 import (
 	"fmt"
+	"strconv"
 
 	"poker/controller/play/util"
 	"poker/game/player"
@@ -23,6 +24,28 @@ func suitIntToString(suit int) string {
 	default:
 		res = "?"
 	}
+	return res
+}
+
+func cardsNumToString(num int) string {
+	num += 1
+
+	var res string
+	switch num {
+	case 11:
+		res = "J"
+	case 12:
+		res = "Q"
+	case 13:
+		res = "K"
+	case 1:
+		res = "A"
+	case 0:
+		res = "?"
+	default:
+		res = strconv.Itoa(num)
+	}
+
 	return res
 }
 
@@ -61,18 +84,18 @@ func Drawing(players []*player.Player, dealer dealer.Dealer, uid string, winner 
 		template,
 		dealer.Pot, dealer.CurrentPlayer,
 		p1.Id, p1.Stack, p1.BettingAmount, p1BTN,
-		dealer.Board[0].Number + 1,
-		dealer.Board[1].Number + 1,
-		dealer.Board[2].Number + 1,
-		dealer.Board[3].Number + 1,
-		dealer.Board[4].Number + 1,
+		cardsNumToString(dealer.Board[0].Number),
+		cardsNumToString(dealer.Board[1].Number),
+		cardsNumToString(dealer.Board[2].Number),
+		cardsNumToString(dealer.Board[3].Number),
+		cardsNumToString(dealer.Board[4].Number),
 		suitIntToString(dealer.Board[0].Suit),
 		suitIntToString(dealer.Board[1].Suit),
 		suitIntToString(dealer.Board[2].Suit),
 		suitIntToString(dealer.Board[3].Suit),
 		suitIntToString(dealer.Board[4].Suit),
 		p2.Id, p2.Stack, p2.BettingAmount, p2BTN,
-		p2.Hand[0].Number + 1, suitIntToString(p2.Hand[0].Suit),
-		p2.Hand[1].Number + 1, suitIntToString(p2.Hand[1].Suit),
+		cardsNumToString(p2.Hand[0].Number), suitIntToString(p2.Hand[0].Suit),
+		cardsNumToString(p2.Hand[1].Number), suitIntToString(p2.Hand[1].Suit),
 	)
 }

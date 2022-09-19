@@ -13,8 +13,8 @@ type Player struct {
 	BettingAmount	int
 }
 
-func NewPlayer(stack int, uuid string) *Player {
-	player := Player{Stack: stack, Uuid: uuid}
+func NewPlayer(stack int, uuid string, id int) *Player {
+	player := Player{Stack: stack, Uuid: uuid, Id: id}
 	return &player
 }
 

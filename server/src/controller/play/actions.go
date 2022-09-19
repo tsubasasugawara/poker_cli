@@ -61,7 +61,7 @@ func deal(h *Hub, userAction Action) (bool, error) {
 	// BBが1BBよりもスタックを持っているかどうかを確認し、
 	// 持っていなかったらオールインとする
 	sbBettingAmount := rate
-	if stack := h.rooms[userAction.RoomId].Players[(h.rooms[userAction.RoomId].Dealer.BigBlindPosition - 1) % len(h.rooms[userAction.RoomId].Players)].Stack; stack <= rate {
+	if stack := h.rooms[userAction.RoomId].Players[(1 - h.rooms[userAction.RoomId].Dealer.BigBlindPosition ) % len(h.rooms[userAction.RoomId].Players)].Stack; stack <= rate {
 		sbBettingAmount = stack
 		allIn = true
 	}

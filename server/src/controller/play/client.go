@@ -38,7 +38,7 @@ type UserInfo struct {
 type Client struct {
 	hub		*Hub
 	conn	*websocket.Conn
-	send	chan TransmissionData
+	send	chan string
 	EnterAt	time.Time
 	Info	UserInfo
 }
@@ -80,14 +80,10 @@ func (c *Client) writePump() {
 			break
 		}
 
-		msg, err := json.Marshal(data)
-		if err != nil {
-			log.Printf("error: %v", err)
-			continue
-		}
+		msg := []byte(data)
 		log.Println(string(msg))
 
-		err = c.conn.WriteMessage(websocket.TextMessage, msg)
+		err := c.conn.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
 			log.Printf("error: %v", err)
 			break
@@ -106,7 +102,7 @@ func ServeWs(hub *Hub, c *gin.Context) {
 	client.Info.UserId = c.Request.Header.Get("userId")
 	client.Info.RoomId = c.Request.Header.Get("roomId")
 	client.EnterAt = time.Now()
-	client.send = make(chan TransmissionData)
+	client.send = make(chan string, 5)
 	client.hub.register <- client
 
 	go client.writePump()

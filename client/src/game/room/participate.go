@@ -6,20 +6,18 @@ import (
 	"encoding/json"
 	"bufio"
 	"fmt"
-
 	"flag"
 	"log"
 	"net/url"
 	"os"
 	"os/signal"
 	"strings"
-	// "time"
 
 	"poker/terminal"
+	"poker/env"
 
 	"github.com/gorilla/websocket"
 
-	"poker/env"
 )
 
 type Action struct {
@@ -108,42 +106,14 @@ func Connect(uid, roomId string) {
 				break
 			}
 
-			var data interface{}
-			err = json.Unmarshal(msg, &data)
-			log.Println("read data: ", string(msg))
+			log.Println(string(msg))
+
 			if err != nil {
 				log.Println("read:", err)
 				return
 			}
-			log.Println("read: ", data)
 		}
 	}()
 
 	terminal.Run(uid, roomId, c)
-
-	// ticker := time.NewTicker(time.Second)
-	// defer ticker.Stop()
-
-	// for {
-	// 	select {
-	// 	case <-done:
-	// 		return
-	// 	case <-interrupt:
-	// 		log.Println("interrupt")
-
-	// 		// Cleanly close the connection by sending a close message and then
-	// 		// waiting (with timeout) for the server to close the connection.
-	// 		action := Action{UserId: uid, RoomId: roomId}
-	// 		err := c.WriteJSON(action)
-	// 		if err != nil {
-	// 			log.Println("write close:", err)
-	// 			return
-	// 		}
-	// 		select {
-	// 		case <-done:
-	// 		case <-time.After(time.Second):
-	// 		}
-	// 		return
-	// 	}
-	// }
 }

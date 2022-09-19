@@ -5,6 +5,7 @@ import (
 	"poker/game"
 	"poker/game/player"
 	"poker/game/dealer"
+	"poker/game/drawing"
 )
 
 type Hub struct {
@@ -54,8 +55,8 @@ func (h *Hub) addClient(roomId string, client *Client) {
 }
 
 // プレイヤーをルームに追加
-func (h *Hub) addPlayer(roomId string, userId string) {
-	h.rooms[roomId].Players = append(h.rooms[roomId].Players, player.NewPlayer(5000, userId))
+func (h *Hub) addPlayer(roomId string, userId string, id int) {
+	h.rooms[roomId].Players = append(h.rooms[roomId].Players, player.NewPlayer(5000, userId, id))
 }
 
 func (h *Hub) Run() {
@@ -71,7 +72,7 @@ func (h *Hub) Run() {
 
 			h.addClient(client.Info.RoomId, client)
 
-			h.addPlayer(client.Info.RoomId, client.Info.UserId)
+			h.addPlayer(client.Info.RoomId, client.Info.UserId, len(h.rooms[client.Info.RoomId].Players))
 
 			// 2人になったらゲームを開始する
 			if len(h.rooms[client.Info.RoomId].Players) == 2 {
@@ -99,30 +100,25 @@ func (h *Hub) Run() {
 		case userAction := <-h.broadcast:
 			winner, err := GameProgress(h, userAction)
 			if err != nil {
-				log.Println("game progress error.")
+				log.Println(err)
 			}
 
 			// 同じルームのユーザにデータを送信
 			for client := range h.clients[userAction.RoomId] {
-				var data TransmissionData
-				if err != nil {
-					data = TransmissionData{ErrMsg: err}
-				} else {
-					var players []player.Player
-					for _, player := range h.rooms[userAction.RoomId].Players {
-						players = append(players, *player)
-					}
-
-					data = TransmissionData{
-						Dealer: *h.rooms[userAction.RoomId].Dealer,
-						Players: players,
-						Winner: winner,
-					}
+				var players []player.Player
+				for _, player := range h.rooms[userAction.RoomId].Players {
+					players = append(players, *player)
 				}
+				msg := drawing.Drawing(
+					h.rooms[userAction.RoomId].Players,
+					*h.rooms[userAction.RoomId].Dealer,
+					client.Info.UserId,
+					winner,
+				)
 
 				// チャネルにデータを送る
 				select {
-				case client.send <- data:
+				case client.send <- msg:
 				default:
 					log.Println("default")
 				}

@@ -50,8 +50,6 @@ func GetChar(userId, roomId string, conn *websocket.Conn) {
 		case CtrlC:
 			running = false
 		case ENTER:
-			log.Println(betAmount)
-
 			msg, err := json.Marshal(
 				Action{
 					UserId: userId,
@@ -148,7 +146,6 @@ func GetChar(userId, roomId string, conn *websocket.Conn) {
 			if ZERO <= p[0] && NINE >= p[0] && len(betAmount) < 19 {
 				betAmount = betAmount + string(p[0])
 			}
-			log.Println(p)
 		}
 	}
 

@@ -59,7 +59,7 @@ func (dealer *Dealer) CalcPot(chip int) {
 	dealer.Pot = dealer.Pot + chip
 }
 
-func (dealer *Dealer) calcBtnPosition(playersCnt int) (int, error) {
+func (dealer *Dealer) CalcBtnPosition(playersCnt int) (int, error) {
 	var btnPosition int
 	if playersCnt <= 1 {
 		return -1, errors.New("プレイヤーが足りません。")
@@ -94,7 +94,7 @@ func (dealer *Dealer) Deal(playersCnt int) ([][2]card.Card, error){
 	}
 
 	// BTNの位置をBBから求める
-	btnPosition, err := dealer.calcBtnPosition(playersCnt)
+	btnPosition, err := dealer.CalcBtnPosition(playersCnt)
 	if err != nil {
 		return res, err
 	}

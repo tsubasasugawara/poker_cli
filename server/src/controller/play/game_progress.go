@@ -17,6 +17,7 @@ import (
  * @{result} bool : 進める場合はtrue
  */
 func whetherNextState(h *Hub, userAction Action) (bool) {
+	log.Println(h.rooms[userAction.RoomId].ActionHistory)
 	// ベット金額が揃っていなければ次へは進めない
 	if h.rooms[userAction.RoomId].Players[0].BettingAmount != h.rooms[userAction.RoomId].Players[1].BettingAmount {
 		return false
@@ -112,7 +113,6 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	if len(h.rooms[userAction.RoomId].Players) != 2 {
 		return []int{}, errors.New("Not enough players.")
 	}
-	// log.Println("success")
 	// もし現在アクションしていいプレイヤーでなければ何もしない
 	if h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.CurrentPlayer].Uuid != userAction.UserId && userAction.ActionType != game.DEAL {
 		return []int{}, errors.New("Illegal Player.")
@@ -153,7 +153,7 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 			river(h,userAction)
 		}
 
-		h.rooms[userAction.RoomId].State += 1
+		h.rooms[userAction.RoomId].ActionHistory = game.ActionHistory{}
 	}
 
 	// オールインの場合は無理やり進める
@@ -169,7 +169,17 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 		h.rooms[userAction.RoomId].State = RIVER + 1
 	}
 
+	// プリフロップのBBでオールインとなったとき
+	if userAction.ActionType == game.DEAL && allIn {
+		frop(h, userAction)
+		turn(h, userAction)
+		river(h, userAction)
+
+		h.rooms[userAction.RoomId].State = RIVER + 1
+	}
+
 	// 勝敗をジャッジする
+	// TODO : 勝敗が決まったときにもう一度ディールを行う
 	winner := []int{}
 	if h.rooms[userAction.RoomId].State == RIVER + 1 {
 		roles := evaluator.Evaluator(h.rooms[userAction.RoomId].Players, h.rooms[userAction.RoomId].Dealer.Board)

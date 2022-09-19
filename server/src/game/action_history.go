@@ -30,10 +30,11 @@ const (
 	HISTORY_MAX int = 10
 )
 
-func (ah ActionHistory) AppendActionHistory(history History) {
+func AppendActionHistory(ah ActionHistory, history History) ActionHistory {
 	if len(ah) >= HISTORY_MAX {
 		ah = append(ah[1:], history)
 	} else {
 		ah = append(ah, history)
 	}
+	return ah
 }

@@ -62,29 +62,30 @@ func (dealer *Dealer) CalcPot(chip int) {
 func (dealer *Dealer) CalcBtnPosition(playersCnt int) (int, error) {
 	var btnPosition int
 	if playersCnt <= 1 {
-		return -1, errors.New("プレイヤーが足りません。")
+		return -1, errors.New("There are not enough players.")
 	} else if playersCnt == 2 {
 		btnPosition = 1 - dealer.BigBlindPosition
 	} else {
 		btnPosition = (dealer.BigBlindPosition - 2 + playersCnt) % 8
+		return -1, errors.New("Too many players.")
 	}
 
 	return btnPosition, nil
 }
 
 // 次のゲームへ進む
-func (dealer *Dealer) NextGame(playersCnt int) {
-	dealer.BigBlindPosition = (dealer.BigBlindPosition + 1) % playersCnt
+func (dealer *Dealer) NextGame() {
+	dealer.BigBlindPosition = 1 - dealer.BigBlindPosition
 }
 
 // 最初にアクションをするプレイやーを指定する
-func (dealer *Dealer) FirstPlayer(playersCnt int){
-	dealer.CurrentPlayer = (dealer.BigBlindPosition + 1) % playersCnt
+func (dealer *Dealer) FirstPlayer(){
+	dealer.CurrentPlayer = 1 - dealer.BigBlindPosition
 }
 
 // 次にアクションをするプレイヤーを指定する
-func (dealer *Dealer) NextPlayer(playersCnt int) {
-	dealer.CurrentPlayer = (dealer.CurrentPlayer + 1) % playersCnt
+func (dealer *Dealer) NextPlayer() {
+	dealer.CurrentPlayer = 1 - dealer.CurrentPlayer
 }
 
 func (dealer *Dealer) Deal(playersCnt int) ([][2]card.Card, error){
@@ -106,7 +107,7 @@ func (dealer *Dealer) Deal(playersCnt int) ([][2]card.Card, error){
 	}
 
 	// 最初にアクションをするプレイヤーを決定
-	dealer.FirstPlayer(playersCnt)
+	dealer.FirstPlayer()
 
 	return res, nil
 }

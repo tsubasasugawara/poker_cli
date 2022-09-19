@@ -81,8 +81,6 @@ func (c *Client) writePump() {
 		}
 
 		msg := []byte(data)
-		log.Println(string(msg))
-
 		err := c.conn.WriteMessage(websocket.TextMessage, msg)
 		if err != nil {
 			log.Printf("error: %v", err)

@@ -10,6 +10,32 @@ import (
 	"poker/game/dealer/judge"
 )
 
+// 1つのボードが終わるごとに実行
+func Finish(h *Hub, roomId string, winner []int) {
+	if len(winner)== 0 {
+		return
+	}
+
+	// 勝者にポットを渡す
+	if len(winner) == 2 {
+		h.rooms[roomId].Players[0].CalcStack(h.rooms[roomId].Dealer.Pot / 2)
+		h.rooms[roomId].Players[1].CalcStack(h.rooms[roomId].Dealer.Pot / 2)
+	} else if len(winner) == 1 {
+		h.rooms[roomId].Players[winner[0]].CalcStack(h.rooms[roomId].Dealer.Pot)
+	}
+	h.rooms[roomId].Players[0].ResetBettingAmount()
+	h.rooms[roomId].Players[1].ResetBettingAmount()
+
+	// ディーラーの初期化
+	h.rooms[roomId].Dealer.Init()
+
+	// アクションの履歴をクリア
+	h.rooms[roomId].ActionHistory = game.ActionHistory{}
+
+	// ゲームの進行状況をプリフロップへ戻す
+	h.rooms[roomId].State = PRE_FROP
+}
+
 /*
  * 次のステップへ進むかどうかを判定
  * @{param} h *Hub
@@ -108,6 +134,8 @@ func river(h *Hub, userAction Action) (error) {
  * @{param} userAction Action
  * @{return} []int : 勝敗が決まったら勝者のインデックス番号を返す。決まらなければ長さ0
  */
+ // TODO : 最初にアクションをするプレイヤーの変わり方がおかしい(ターンは1からなのにリバーは0から)
+
 func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	// 人数がたりない
 	if len(h.rooms[userAction.RoomId].Players) != 2 {
@@ -184,7 +212,6 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	if h.rooms[userAction.RoomId].State == RIVER + 1 {
 		roles := evaluator.Evaluator(h.rooms[userAction.RoomId].Players, h.rooms[userAction.RoomId].Dealer.Board)
 		winner = judge.Judge(roles)
-		h.rooms[userAction.RoomId].State = PRE_FROP
 	}
 
 	return winner, nil

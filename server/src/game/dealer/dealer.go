@@ -19,11 +19,11 @@ type Dealer struct {
 // コンストラクタ
 func NewDealer() *Dealer {
 	dealer := Dealer{}
-	dealer.init()
+	dealer.Init()
 	return &dealer
 }
 
-func (dealer *Dealer) init() {
+func (dealer *Dealer) Init() {
 	dealer.Board = [5]card.Card{
 		card.Card{Number: -1, Suit: -1},
 		card.Card{Number: -1, Suit: -1},
@@ -32,7 +32,8 @@ func (dealer *Dealer) init() {
 		card.Card{Number: -1, Suit: -1},
 	}
 	dealer.Pot = 0
-	dealer.BigBlindPosition = 0
+	dealer.NextGame()
+	dealer.FirstPlayer()
 
 	dealer.Cards = []card.Card{}
 	// 順番に並んだトランプを生成
@@ -44,7 +45,7 @@ func (dealer *Dealer) init() {
 }
 
 func (dealer *Dealer) Shuffle() {
-	dealer.init()
+	dealer.Init()
 
 	rand.Seed(time.Now().UnixNano())
 

@@ -2,6 +2,8 @@ package play
 
 import (
 	"log"
+	"time"
+
 	"poker/game"
 	"poker/game/player"
 	"poker/game/dealer"
@@ -27,9 +29,9 @@ type TransmissionData struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		broadcast:	make(chan Action, 5),
-		register:	make(chan *Client, 5),
-		unregister:	make(chan *Client, 5),
+		broadcast:	make(chan Action, 10),
+		register:	make(chan *Client, 10),
+		unregister:	make(chan *Client, 10),
 		clients:	make(map[string]map[*Client]bool),
 		rooms:		make(map[string]*Room),
 	}
@@ -103,6 +105,11 @@ func (h *Hub) Run() {
 				log.Println(err)
 			}
 
+			// 勝敗が決まったら終了処理をおこなう
+			if len(winner) > 0 {
+				Finish(h, userAction.RoomId, winner)
+			}
+
 			// 同じルームのユーザにデータを送信
 			for client := range h.clients[userAction.RoomId] {
 				var players []player.Player
@@ -121,6 +128,25 @@ func (h *Hub) Run() {
 				case client.send <- msg:
 				default:
 					log.Println("default")
+				}
+
+				// 勝敗が決まったら、3秒後に新しいボードへと移行する
+				// TODO : 同じ処理があるためリファクタリング必要
+				// TODO : クライアントを回すごとに3秒待つことになっているため、合計6秒の町になっている
+				if len(winner) > 0 {
+					time.Sleep(3 * time.Second)
+					h.rooms[userAction.RoomId].Dealer.Init()
+					msg := drawing.Drawing(
+						h.rooms[userAction.RoomId].Players,
+						*h.rooms[userAction.RoomId].Dealer,
+						client.Info.UserId,
+						[]int{},
+					)
+					select {
+					case client.send <- msg:
+					default:
+						log.Println("default")
+					}
 				}
 			}
 		}

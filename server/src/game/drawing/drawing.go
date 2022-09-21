@@ -80,10 +80,21 @@ func Drawing(players []*player.Player, dealer dealer.Dealer, uid string, winner 
 		p1BTN = "BTN"
 	}
 
+	// 前から一枚目の番号,スート、二枚目の番号,スート
+	opponentHand := [4]string{"?", "?", "?", "?"}
+
+	if len(winner) > 0 {
+		opponentHand[0] = cardsNumToString(p1.Hand[0].Number)
+		opponentHand[1] = suitIntToString(p1.Hand[0].Suit)
+		opponentHand[2] = cardsNumToString(p1.Hand[1].Number)
+		opponentHand[3] = suitIntToString(p1.Hand[1].Suit)
+	}
+
 	return fmt.Sprintf(
 		template,
 		dealer.Pot, dealer.CurrentPlayer,
 		p1.Id, p1.Stack, p1.BettingAmount, p1BTN,
+		opponentHand[0], opponentHand[1], opponentHand[2], opponentHand[3],
 		cardsNumToString(dealer.Board[0].Number),
 		cardsNumToString(dealer.Board[1].Number),
 		cardsNumToString(dealer.Board[2].Number),

@@ -29,7 +29,6 @@ func deal(h *Hub, userAction Action) (bool, error) {
 		return false, nil
 	}
 
-	allIn := false
 	// ディーラーを設定
 	h.rooms[userAction.RoomId].Dealer = dealer.NewDealer()
 
@@ -50,32 +49,84 @@ func deal(h *Hub, userAction Action) (bool, error) {
 	rate := 200
 	h.rooms[userAction.RoomId].Rate = rate
 
-	var bbBettingAmount, sbBettingAmount int
+	var (
+		bbBettingAmount int = rate
+		sbBettingAmount int = rate / 2
 
-	// BBが1BBよりもスタックを持っているかどうかを確認し、
+		bbAllIn bool = false
+		sbAllIn bool = false
+	)
+
+	// BBが1BB以上スタックを持っているかどうかを確認し、
 	// 持っていなかったらオールインとする
-	if stack := h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Stack; stack <= rate {
+	if stack := h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Stack; stack <= bbBettingAmount {
 		bbBettingAmount = stack
-		sbBettingAmount = stack
-		allIn = true
+		bbAllIn = true
 	}
 
-	// SBが0.5BBよりもスタックを持っているかどうかを確認し、
+	// SBが0.5BB以上スタックを持っているかどうかを確認し、
 	// 持っていなかったらオールインとする
-	if stack := h.rooms[userAction.RoomId].Players[1 - h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Stack; stack <= rate / 2 {
+	if stack := h.rooms[userAction.RoomId].Players[1 - h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Stack; stack <= sbBettingAmount {
 		sbBettingAmount = stack
-		bbBettingAmount = stack
-		allIn = true
+		sbAllIn = true
 	}
 
 	h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.BigBlindPosition].CalcBettingAmount(bbBettingAmount)
 	h.rooms[userAction.RoomId].Players[1 - h.rooms[userAction.RoomId].Dealer.BigBlindPosition].CalcBettingAmount(sbBettingAmount)
-	h.rooms[userAction.RoomId].ActionHistory = game.AppendActionHistory(
-		h.rooms[userAction.RoomId].ActionHistory,
-		game.History{Action: game.DEAL},
-	)
 
-	return allIn, nil
+	// BBが強制オールインのとき
+	if bbAllIn {
+		// BET扱いにする
+		h.rooms[userAction.RoomId].ActionHistory = game.AppendActionHistory(
+			h.rooms[userAction.RoomId].ActionHistory,
+			game.History{
+				Action: game.BET,
+				Chip: bbBettingAmount,
+				PlayerId: h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Uuid,
+			},
+		)
+
+		// SB(0.5BB)よりもBBのオールイン額が小さい場合はSBはコールとする
+		h.rooms[userAction.RoomId].ActionHistory = game.AppendActionHistory(
+			h.rooms[userAction.RoomId].ActionHistory,
+			game.History{
+				Action: game.CALL,
+				Chip: bbBettingAmount,
+				PlayerId: h.rooms[userAction.RoomId].Players[1 - h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Uuid,
+			},
+		)
+
+		// チップを返す
+		h.rooms[userAction.RoomId].Players[1 - h.rooms[userAction.RoomId].Dealer.BigBlindPosition].CalcBettingAmount(bbBettingAmount - sbBettingAmount)
+	}
+
+	// SBが強制オールインのとき
+	if sbAllIn {
+		// BET扱いにする
+		h.rooms[userAction.RoomId].ActionHistory = game.AppendActionHistory(
+			h.rooms[userAction.RoomId].ActionHistory,
+			game.History{
+				Action: game.BET,
+				Chip: sbBettingAmount,
+				PlayerId: h.rooms[userAction.RoomId].Players[1 - h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Uuid,
+			},
+		)
+
+		// SB(0.5BB)よりもBBのオールイン額が小さい場合はSBはコールとする
+		h.rooms[userAction.RoomId].ActionHistory = game.AppendActionHistory(
+			h.rooms[userAction.RoomId].ActionHistory,
+			game.History{
+				Action: game.CALL,
+				Chip: bbBettingAmount,
+				PlayerId: h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.BigBlindPosition].Uuid,
+			},
+		)
+
+		// チップを返す
+		h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.BigBlindPosition].CalcBettingAmount(sbBettingAmount - bbBettingAmount)
+	}
+
+	return (sbAllIn || bbAllIn), nil
 }
 
 /*
@@ -85,6 +136,7 @@ func deal(h *Hub, userAction Action) (bool, error) {
  * @{resutl} bool : オールインしたかどうか
  * @{resutl} error
 */
+// TODO : 相手のベット金額の２倍でベットができていない(プリフロで確認 SBがBBの２倍になるようにベットしたら弾かれた)
 func bet(h *Hub, userAction Action) (bool, error) {
 	chip, err := strconv.Atoi(userAction.Data)
 	if err != nil {
@@ -102,14 +154,14 @@ func bet(h *Hub, userAction Action) (bool, error) {
 	// チップが相手の掛け金の二倍ならベット、
 	// 等しいならコール(ショートスタックのオールインも含む)、
 	// それ以下ならエラー
-	playersChip := h.rooms[userAction.RoomId].Players[playerIndex].BettingAmount + chip
+	playerChip := h.rooms[userAction.RoomId].Players[playerIndex].BettingAmount + chip
 	// もし相手のベット金額+スタックが、ベットしたプレイヤーよりも小さい場合には返金
-	if playersChip > h.rooms[userAction.RoomId].Players[1 - playerIndex].BettingAmount * 2 {
+	if playerChip >= h.rooms[userAction.RoomId].Players[1 - playerIndex].BettingAmount * 2 {
 		h.rooms[userAction.RoomId].ActionHistory = game.AppendActionHistory(
 			h.rooms[userAction.RoomId].ActionHistory,
-			game.History{Action: game.BET, Chip: playersChip, PlayerId: userAction.UserId},
+			game.History{Action: game.BET, Chip: playerChip, PlayerId: userAction.UserId},
 		)
-	} else if chip == h.rooms[userAction.RoomId].Players[1 - playerIndex].BettingAmount * 2 || allIn {
+	} else if playerChip == h.rooms[userAction.RoomId].Players[1 - playerIndex].BettingAmount || allIn {
 		return call(h, userAction)
 	} else {
 		return false, errors.New("Illegal bet.")

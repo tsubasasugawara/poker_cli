@@ -136,7 +136,6 @@ func deal(h *Hub, userAction Action) (bool, error) {
  * @{resutl} bool : オールインしたかどうか
  * @{resutl} error
 */
-// TODO : 相手のベット金額の２倍でベットができていない(プリフロで確認 SBがBBの２倍になるようにベットしたら弾かれた)
 func bet(h *Hub, userAction Action) (bool, error) {
 	chip, err := strconv.Atoi(userAction.Data)
 	if err != nil {

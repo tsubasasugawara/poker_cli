@@ -181,7 +181,11 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 			river(h,userAction)
 		}
 
+		// アクション履歴の初期化
 		h.rooms[userAction.RoomId].ActionHistory = game.ActionHistory{}
+
+		// 最初にアクションするプレイヤーの設定
+		h.rooms[userAction.RoomId].Dealer.FirstPlayer()
 	}
 
 	// オールインの場合は無理やり進める
@@ -207,7 +211,6 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	}
 
 	// 勝敗をジャッジする
-	// TODO : 勝敗が決まったときにもう一度ディールを行う
 	winner := []int{}
 	if h.rooms[userAction.RoomId].State == RIVER + 1 {
 		roles := evaluator.Evaluator(h.rooms[userAction.RoomId].Players, h.rooms[userAction.RoomId].Dealer.Board)

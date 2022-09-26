@@ -6,7 +6,6 @@ import (
 
 	"poker/game"
 	"poker/controller/play/util"
-	"poker/game/dealer"
 )
 
 type Action struct {
@@ -29,8 +28,8 @@ func deal(h *Hub, userAction Action) (bool, error) {
 		return false, nil
 	}
 
-	// ディーラーを設定
-	h.rooms[userAction.RoomId].Dealer = dealer.NewDealer()
+	// ディーラーを初期化
+	h.rooms[userAction.RoomId].Dealer.Init()
 
 	//カードシャッフル
 	h.rooms[userAction.RoomId].Dealer.Shuffle()

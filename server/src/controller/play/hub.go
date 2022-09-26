@@ -78,6 +78,7 @@ func (h *Hub) Run() {
 
 			// 2人になったらゲームを開始する
 			if len(h.rooms[client.Info.RoomId].Players) == 2 {
+				h.rooms[client.Info.RoomId].Dealer = dealer.NewDealer()
 				h.broadcast <- Action{UserId: client.Info.UserId, RoomId: client.Info.RoomId, ActionType: game.DEAL, Data: "Deal the cards."}
 			}
 
@@ -100,14 +101,13 @@ func (h *Hub) Run() {
 			}
 
 		case userAction := <-h.broadcast:
+			if h.rooms[userAction.RoomId].Finish {
+				continue
+			}
+
 			winner, show, err := GameProgress(h, userAction)
 			if err != nil {
 				log.Println(err)
-			}
-
-			// 勝敗が決まったら終了処理をおこなう
-			if len(winner) > 0 {
-				Finish(h, userAction.RoomId, winner)
 			}
 
 			// 同じルームのユーザにデータを送信
@@ -130,27 +130,26 @@ func (h *Hub) Run() {
 				default:
 					log.Println("default")
 				}
+			}
 
-				// 勝敗が決まったら、3秒後に新しいボードへと移行する
-				// TODO : 同じ処理があるためリファクタリング必要
-				// TODO : クライアントを回すごとに3秒待つことになっているため、合計6秒の町になっている
-				// TODO : 勝敗が決まり次第ディール
-				if len(winner) > 0 {
-					time.Sleep(3 * time.Second)
-					h.rooms[userAction.RoomId].Dealer.Init()
-					msg := drawing.Drawing(
-						h.rooms[userAction.RoomId].Players,
-						*h.rooms[userAction.RoomId].Dealer,
-						client.Info.UserId,
-						[]int{},
-						false,
-					)
-					select {
-					case client.send <- msg:
-					default:
-						log.Println("default")
-					}
-				}
+			// 勝敗が決まったら、3秒後に新しいボードへと移行する
+			// TODO : 同じ処理があるためリファクタリング必要
+			if len(winner) > 0 {
+				// 処理の開始
+				h.rooms[userAction.RoomId].Finish = true
+
+				time.Sleep(3 * time.Second)
+
+				Finish(h, userAction.RoomId, winner)
+
+				h.rooms[userAction.RoomId].Dealer.Init()
+
+				// 処理の終了
+				h.rooms[userAction.RoomId].Finish = false
+
+				// ディール
+				h.broadcast <- Action{UserId: userAction.UserId, RoomId: userAction.RoomId, ActionType: game.DEAL, Data: "Deal the cards."}
+
 			}
 		}
 	}

@@ -12,4 +12,5 @@ type Room struct {
 	State 			int //ゲームの進行状況を格納(プリフロップ, フロップ, ターン, リバー)
 	ActionHistory	game.ActionHistory
 	Rate			int // レート (100/200 → 200を代入)
+	Finish			bool
 }

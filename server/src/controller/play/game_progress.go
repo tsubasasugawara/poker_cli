@@ -12,17 +12,11 @@ import (
 
 // 1つのボードが終わるごとに実行
 func Finish(h *Hub, roomId string, winner []int) {
-	if len(winner)== 0 {
-		return
+	// 勝者にポットを渡す
+	for _, v := range winner {
+		h.rooms[roomId].Players[v].CalcStack(h.rooms[roomId].Dealer.Pot / len(winner))
 	}
 
-	// 勝者にポットを渡す
-	if len(winner) == 2 {
-		h.rooms[roomId].Players[0].CalcStack(h.rooms[roomId].Dealer.Pot / 2)
-		h.rooms[roomId].Players[1].CalcStack(h.rooms[roomId].Dealer.Pot / 2)
-	} else if len(winner) == 1 {
-		h.rooms[roomId].Players[winner[0]].CalcStack(h.rooms[roomId].Dealer.Pot)
-	}
 	h.rooms[roomId].Players[0].ResetBettingAmount()
 	h.rooms[roomId].Players[1].ResetBettingAmount()
 
@@ -43,7 +37,6 @@ func Finish(h *Hub, roomId string, winner []int) {
  * @{result} bool : 進める場合はtrue
  */
 func whetherNextState(h *Hub, userAction Action) (bool) {
-	log.Println(h.rooms[userAction.RoomId].ActionHistory)
 	// ベット金額が揃っていなければ次へは進めない
 	if h.rooms[userAction.RoomId].Players[0].BettingAmount != h.rooms[userAction.RoomId].Players[1].BettingAmount {
 		return false
@@ -136,8 +129,6 @@ func river(h *Hub, userAction Action) (error) {
  * @{return} bool : カードを見せる(true), 隠す(false)
  * @{return} error
  */
- // TODO : 最初にアクションをするプレイヤーの変わり方がおかしい(ターンは1からなのにリバーは0から)
-
 func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 	// 人数がたりない
 	if len(h.rooms[userAction.RoomId].Players) != 2 {
@@ -149,7 +140,6 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 	}
 
 	var (
-		allIn bool
 		err error
 	)
 	switch userAction.ActionType {
@@ -157,7 +147,7 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 		h.rooms[userAction.RoomId].State = PRE_FROP
 		return []int{util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)}, false, nil
 	default:
-		allIn, err = h.Actions(userAction)
+		_, err = h.Actions(userAction)
 		if err != nil {
 			log.Println(err)
 			return []int{}, false, err
@@ -165,7 +155,24 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 	}
 
 	ok := whetherNextState(h, userAction)
-	if ok {
+
+	// オールインの場合は無理やり進める
+	// TODO : オールインしたのにカードが表示されない オールインのときのみ別処理で少しずづカードを開いていく
+	if (h.rooms[userAction.RoomId].Players[0].Stack == 0 || h.rooms[userAction.RoomId].Players[1].Stack == 0) && ok {
+		switch h.rooms[userAction.RoomId].State {
+		case PRE_FROP:
+			frop(h, userAction)
+			turn(h, userAction)
+			river(h, userAction)
+		case FROP:
+			turn(h, userAction)
+			river(h, userAction)
+		case TURN:
+			river(h, userAction)
+		}
+
+		h.rooms[userAction.RoomId].State = RIVER + 1
+	} else if ok {
 		// ポッドにチップを追加
 		h.rooms[userAction.RoomId].Dealer.CalcPot(h.rooms[userAction.RoomId].Players[0].BettingAmount)
 		h.rooms[userAction.RoomId].Dealer.CalcPot(h.rooms[userAction.RoomId].Players[1].BettingAmount)
@@ -181,6 +188,8 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 			turn(h, userAction)
 		case TURN:
 			river(h,userAction)
+		case RIVER:
+			h.rooms[userAction.RoomId].State += 1
 		}
 
 		// アクション履歴の初期化
@@ -188,29 +197,7 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 
 		// 最初にアクションするプレイヤーの設定
 		h.rooms[userAction.RoomId].Dealer.FirstPlayer()
-	}
 
-	// オールインの場合は無理やり進める
-	// TODO : オールインしたのにゲームが進行しない
-	if allIn && ok {
-		switch h.rooms[userAction.RoomId].State {
-		case FROP:
-			turn(h, userAction)
-			river(h, userAction)
-		case TURN:
-			river(h, userAction)
-		}
-
-		h.rooms[userAction.RoomId].State = RIVER + 1
-	}
-
-	// プリフロップのBBでオールインとなったとき
-	if userAction.ActionType == game.DEAL && allIn {
-		frop(h, userAction)
-		turn(h, userAction)
-		river(h, userAction)
-
-		h.rooms[userAction.RoomId].State = RIVER + 1
 	}
 
 	// 勝敗をジャッジする

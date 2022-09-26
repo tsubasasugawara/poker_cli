@@ -100,7 +100,7 @@ func ServeWs(hub *Hub, c *gin.Context) {
 	client.Info.UserId = c.Request.Header.Get("userId")
 	client.Info.RoomId = c.Request.Header.Get("roomId")
 	client.EnterAt = time.Now()
-	client.send = make(chan string, 5)
+	client.send = make(chan string, 10)
 	client.hub.register <- client
 
 	go client.writePump()

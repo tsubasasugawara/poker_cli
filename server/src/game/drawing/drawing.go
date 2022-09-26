@@ -55,9 +55,10 @@ func cardsNumToString(num int) string {
  * @{param} dealer.Board 	[5]card.Card
  * @{param} uid 	string 			 プレイヤーのUUID
  * @{param} winner 	[]int 			 勝敗がついたら勝者のID
+ * @{param} show 	bool 			 カードを見せるかどうか
  * @{result} 		string			 ターミナルに表示する文字列
  */
-func Drawing(players []*player.Player, dealer dealer.Dealer, uid string, winner []int) (string) {
+func Drawing(players []*player.Player, dealer dealer.Dealer, uid string, winner []int, show bool) (string) {
 	if len(players) < 2 {
 		return ""
 	}
@@ -83,7 +84,7 @@ func Drawing(players []*player.Player, dealer dealer.Dealer, uid string, winner 
 	// 前から一枚目の番号,スート、二枚目の番号,スート
 	opponentHand := [4]string{"?", "?", "?", "?"}
 
-	if len(winner) > 0 {
+	if len(winner) > 0 && show {
 		opponentHand[0] = cardsNumToString(p1.Hand[0].Number)
 		opponentHand[1] = suitIntToString(p1.Hand[0].Suit)
 		opponentHand[2] = cardsNumToString(p1.Hand[1].Number)

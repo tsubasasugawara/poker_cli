@@ -133,17 +133,19 @@ func river(h *Hub, userAction Action) (error) {
  * @{param} h *Hub
  * @{param} userAction Action
  * @{return} []int : 勝敗が決まったら勝者のインデックス番号を返す。決まらなければ長さ0
+ * @{return} bool : カードを見せる(true), 隠す(false)
+ * @{return} error
  */
  // TODO : 最初にアクションをするプレイヤーの変わり方がおかしい(ターンは1からなのにリバーは0から)
 
-func GameProgress(h *Hub, userAction Action) ([]int, error) {
+func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 	// 人数がたりない
 	if len(h.rooms[userAction.RoomId].Players) != 2 {
-		return []int{}, errors.New("Not enough players.")
+		return []int{}, false, errors.New("Not enough players.")
 	}
 	// もし現在アクションしていいプレイヤーでなければ何もしない
 	if h.rooms[userAction.RoomId].Players[h.rooms[userAction.RoomId].Dealer.CurrentPlayer].Uuid != userAction.UserId && userAction.ActionType != game.DEAL {
-		return []int{}, errors.New("Illegal Player.")
+		return []int{}, false, errors.New("Illegal Player.")
 	}
 
 	var (
@@ -153,12 +155,12 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	switch userAction.ActionType {
 	case game.FOLD:
 		h.rooms[userAction.RoomId].State = PRE_FROP
-		return []int{util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)}, nil
+		return []int{util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)}, false, nil
 	default:
 		allIn, err = h.Actions(userAction)
 		if err != nil {
 			log.Println(err)
-			return []int{}, err
+			return []int{}, false, err
 		}
 	}
 
@@ -189,6 +191,7 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 	}
 
 	// オールインの場合は無理やり進める
+	// TODO : オールインしたのにゲームが進行しない
 	if allIn && ok {
 		switch h.rooms[userAction.RoomId].State {
 		case FROP:
@@ -212,10 +215,16 @@ func GameProgress(h *Hub, userAction Action) ([]int, error) {
 
 	// 勝敗をジャッジする
 	winner := []int{}
+	show := false
 	if h.rooms[userAction.RoomId].State == RIVER + 1 {
 		roles := evaluator.Evaluator(h.rooms[userAction.RoomId].Players, h.rooms[userAction.RoomId].Dealer.Board)
 		winner = judge.Judge(roles)
+
+		// 勝敗が決まったらカードをショー
+		if len(winner) > 0 {
+			show = true
+		}
 	}
 
-	return winner, nil
+	return winner, show, nil
 }

@@ -100,7 +100,7 @@ func (h *Hub) Run() {
 			}
 
 		case userAction := <-h.broadcast:
-			winner, err := GameProgress(h, userAction)
+			winner, show, err := GameProgress(h, userAction)
 			if err != nil {
 				log.Println(err)
 			}
@@ -121,6 +121,7 @@ func (h *Hub) Run() {
 					*h.rooms[userAction.RoomId].Dealer,
 					client.Info.UserId,
 					winner,
+					show,
 				)
 
 				// チャネルにデータを送る
@@ -133,6 +134,7 @@ func (h *Hub) Run() {
 				// 勝敗が決まったら、3秒後に新しいボードへと移行する
 				// TODO : 同じ処理があるためリファクタリング必要
 				// TODO : クライアントを回すごとに3秒待つことになっているため、合計6秒の町になっている
+				// TODO : 勝敗が決まり次第ディール
 				if len(winner) > 0 {
 					time.Sleep(3 * time.Second)
 					h.rooms[userAction.RoomId].Dealer.Init()
@@ -141,6 +143,7 @@ func (h *Hub) Run() {
 						*h.rooms[userAction.RoomId].Dealer,
 						client.Info.UserId,
 						[]int{},
+						false,
 					)
 					select {
 					case client.send <- msg:

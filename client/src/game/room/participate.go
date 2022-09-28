@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"poker/terminal"
+	"poker/terminal/utils"
 	"poker/env"
 
 	"github.com/gorilla/websocket"
@@ -106,7 +107,8 @@ func Connect(uid, roomId string) {
 				break
 			}
 
-			log.Println(string(msg))
+			utils.Clear()
+			fmt.Println(string(msg))
 
 			if err != nil {
 				log.Println("read:", err)

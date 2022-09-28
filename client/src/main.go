@@ -36,6 +36,7 @@ func main() {
 
 	running := true
 	for running {
+		fmt.Println("p : Start the game. \nc : Create a room.\ne : Exit")
 		scanner.Scan()
 		switch scanner.Text() {
 		case "p":

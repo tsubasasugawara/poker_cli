@@ -157,7 +157,7 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 	ok := whetherNextState(h, userAction)
 
 	// オールインの場合は無理やり進める
-	// TODO : オールインしたのにカードが表示されない オールインのときのみ別処理で少しずづカードを開いていく
+	// TODO : オールインの際はカードをゆっくりめくる
 	if (h.rooms[userAction.RoomId].Players[0].Stack == 0 || h.rooms[userAction.RoomId].Players[1].Stack == 0) && ok {
 		switch h.rooms[userAction.RoomId].State {
 		case PRE_FROP:
@@ -172,7 +172,9 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 		}
 
 		h.rooms[userAction.RoomId].State = RIVER + 1
-	} else if ok {
+	}
+
+	if ok {
 		// ポッドにチップを追加
 		h.rooms[userAction.RoomId].Dealer.CalcPot(h.rooms[userAction.RoomId].Players[0].BettingAmount)
 		h.rooms[userAction.RoomId].Dealer.CalcPot(h.rooms[userAction.RoomId].Players[1].BettingAmount)

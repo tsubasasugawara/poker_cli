@@ -32,6 +32,7 @@ func readBuffer(bufCh chan []byte) {
 }
 
 // 文字列の入力を受け取る
+// TODO : websockdet通信を終了したあと、少しの間入力を受け付けない期間がある
 func GetChar(userId, roomId string, conn *websocket.Conn) {
 	bufCh := make(chan []byte, 1)
 	go readBuffer(bufCh)

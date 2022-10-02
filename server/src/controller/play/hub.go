@@ -141,7 +141,7 @@ func (h *Hub) Run() {
 
 				time.Sleep(3 * time.Second)
 
-				Finish(h, userAction.RoomId, winner)
+				Init(h, userAction.RoomId, winner)
 
 				h.rooms[userAction.RoomId].Dealer.Init()
 

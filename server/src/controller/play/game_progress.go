@@ -11,7 +11,7 @@ import (
 )
 
 // 1つのボードが終わるごとに実行
-func Finish(h *Hub, roomId string, winner []int) {
+func Init(h *Hub, roomId string, winner []int) {
 	// 勝者にポットを渡す
 	for _, v := range winner {
 		h.rooms[roomId].Players[v].CalcStack(h.rooms[roomId].Dealer.Pot / len(winner))
@@ -28,6 +28,9 @@ func Finish(h *Hub, roomId string, winner []int) {
 
 	// ゲームの進行状況をプリフロップへ戻す
 	h.rooms[roomId].State = PRE_FROP
+
+	//ボタンを移動する
+	h.rooms[roomId].Dealer.NextGame()
 }
 
 /*
@@ -145,7 +148,16 @@ func GameProgress(h *Hub, userAction Action) ([]int, bool, error) {
 	switch userAction.ActionType {
 	case game.FOLD:
 		h.rooms[userAction.RoomId].State = PRE_FROP
-		return []int{util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)}, false, nil
+
+		// ポットに追加
+		h.rooms[userAction.RoomId].Dealer.CalcPot(h.rooms[userAction.RoomId].Players[0].BettingAmount)
+		h.rooms[userAction.RoomId].Dealer.CalcPot(h.rooms[userAction.RoomId].Players[1].BettingAmount)
+
+		// プレイヤーのベットをリセット
+		h.rooms[userAction.RoomId].Players[0].ResetBettingAmount()
+		h.rooms[userAction.RoomId].Players[1].ResetBettingAmount()
+
+		return []int{1 - util.GetPlayerIndex(h.rooms[userAction.RoomId].Players, userAction.UserId)}, false, nil
 	default:
 		_, err = h.Actions(userAction)
 		if err != nil {

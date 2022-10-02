@@ -6,16 +6,21 @@ import (
 )
 
 type Player struct {
-	Id				int
-	Uuid			string
-	Hand			[2]card.Card
-	Stack			int
-	BettingAmount	int
+	Id				int				// ゲームで使うID
+	Uuid			string			// ユーザのuuid
+	Hand			[2]card.Card	// ハンド
+	Stack			int				// 残りスタック数
+	BettingAmount	int				// 現在のベット金額
+	WinRecords		int				// 勝ち数
 }
 
 func NewPlayer(stack int, uuid string, id int) *Player {
 	player := Player{Stack: stack, Uuid: uuid, Id: id}
 	return &player
+}
+
+func (p *Player) Init(stack int) {
+	p.Stack = stack
 }
 
 func (p *Player) Bet(chip int) (int, int) {

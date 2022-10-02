@@ -94,7 +94,7 @@ func Drawing(players []*player.Player, dealer dealer.Dealer, uid string, winner 
 	return fmt.Sprintf(
 		template,
 		dealer.Pot, dealer.CurrentPlayer,
-		p1.Id, p1.Stack, p1.BettingAmount, p1BTN,
+		p1.Id, p1.Stack, p1.BettingAmount, p1BTN, p1.WinRecords,
 		opponentHand[0], opponentHand[1], opponentHand[2], opponentHand[3],
 		cardsNumToString(dealer.Board[0].Number),
 		cardsNumToString(dealer.Board[1].Number),
@@ -106,7 +106,7 @@ func Drawing(players []*player.Player, dealer dealer.Dealer, uid string, winner 
 		suitIntToString(dealer.Board[2].Suit),
 		suitIntToString(dealer.Board[3].Suit),
 		suitIntToString(dealer.Board[4].Suit),
-		p2.Id, p2.Stack, p2.BettingAmount, p2BTN,
+		p2.Id, p2.Stack, p2.BettingAmount, p2BTN, p2.WinRecords,
 		cardsNumToString(p2.Hand[0].Number), suitIntToString(p2.Hand[0].Suit),
 		cardsNumToString(p2.Hand[1].Number), suitIntToString(p2.Hand[1].Suit),
 	)

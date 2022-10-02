@@ -139,7 +139,7 @@ func (h *Hub) Run() {
 				// 処理の開始
 				h.rooms[userAction.RoomId].Finish = true
 
-				time.Sleep(3 * time.Second)
+				time.Sleep(5 * time.Second)
 
 				Init(h, userAction.RoomId, winner)
 
@@ -148,9 +148,25 @@ func (h *Hub) Run() {
 				// 処理の終了
 				h.rooms[userAction.RoomId].Finish = false
 
+				// どちらかのスタックが0になったとき、スタックを初期化する
+				if h.rooms[userAction.RoomId].Players[0].Stack == 0 {
+					// 勝ち数をプラスする
+					h.rooms[userAction.RoomId].Players[1].WinRecords += 1
+
+					// スタックを初期化
+					h.rooms[userAction.RoomId].Players[0].Init(5000)
+					h.rooms[userAction.RoomId].Players[1].Init(5000)
+				} else if h.rooms[userAction.RoomId].Players[1].Stack == 0 {
+					// 勝ち数をプラスする
+					h.rooms[userAction.RoomId].Players[0].WinRecords += 1
+
+					// スタックを初期化
+					h.rooms[userAction.RoomId].Players[0].Init(5000)
+					h.rooms[userAction.RoomId].Players[1].Init(5000)
+				}
+
 				// ディール
 				h.broadcast <- Action{UserId: userAction.UserId, RoomId: userAction.RoomId, ActionType: game.DEAL, Data: "Deal the cards."}
-
 			}
 		}
 	}
